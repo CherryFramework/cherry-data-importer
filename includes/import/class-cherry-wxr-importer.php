@@ -615,8 +615,10 @@ class Cherry_WXR_Importer extends WP_Importer {
 		$parent_id   = isset( $data['post_parent'] ) ? (int) $data['post_parent'] : 0;
 		$author_id   = isset( $data['post_author'] ) ? (int) $data['post_author'] : 0;
 
-		$processed_posts     = cdi_cache()->get_group( 'post', 'mapping' );
-		$processed_user_slug = cdi_cache()->get_group( 'user_slug', 'mapping' );
+		$processed_posts     = cdi_cache()->get( 'posts', 'mapping' );
+		$processed_user_slug = cdi_cache()->get( 'user_slug', 'mapping' );
+		$processed_terms     = cdi_cache()->get( 'term', 'mapping' );
+		$remap_posts         = cdi_cache()->get( 'posts', 'requires_remapping' );
 
 		// Have we already processed this?
 		if ( isset( $processed_posts[ $original_id ] ) ) {
@@ -628,7 +630,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 		// Is this type even valid?
 		if ( ! $post_type_object ) {
 			$this->logger->warning( sprintf(
-				__( 'Failed to import "%s": Invalid post type %s', 'wordpress-importer' ),
+				__( 'Failed to import "%s": Invalid post type %s', 'cherry-data-importer' ),
 				$data['post_title'],
 				$data['post_type']
 			) );
@@ -638,7 +640,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 		$post_exists = $this->post_exists( $data );
 		if ( $post_exists ) {
 			$this->logger->info( sprintf(
-				__('%s "%s" already exists.', 'wordpress-importer'),
+				__('%s "%s" already exists.', 'cherry-data-importer'),
 				$post_type_object->labels->singular_name,
 				$data['post_title']
 			) );
@@ -730,7 +732,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		if ( is_wp_error( $post_id ) ) {
 			$this->logger->error( sprintf(
-				__( 'Failed to import "%s" (%s)', 'wordpress-importer' ),
+				__( 'Failed to import "%s" (%s)', 'cherry-data-importer' ),
 				$data['post_title'],
 				$post_type_object->labels->singular_name
 			) );
@@ -755,19 +757,20 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		// map pre-import ID to local ID
-		$this->mapping['post'][ $original_id ] = (int) $post_id;
+		$processed_posts[ $original_id ] = (int) $post_id;
 		if ( $requires_remapping ) {
-			$this->requires_remapping['post'][ $post_id ] = true;
+			$remap_posts[ $post_id ] = true;
+			cdi_cache()->update( 'posts', $remap_posts, 'requires_remapping' );
 		}
 		$this->mark_post_exists( $data, $post_id );
 
 		$this->logger->info( sprintf(
-			__( 'Imported "%s" (%s)', 'wordpress-importer' ),
+			__( 'Imported "%s" (%s)', 'cherry-data-importer' ),
 			$data['post_title'],
 			$post_type_object->labels->singular_name
 		) );
 		$this->logger->debug( sprintf(
-			__( 'Post %d remapped to %d', 'wordpress-importer' ),
+			__( 'Post %d remapped to %d', 'cherry-data-importer' ),
 			$original_id,
 			$post_id
 		) );
@@ -781,10 +784,9 @@ class Cherry_WXR_Importer extends WP_Importer {
 				$taxonomy = $term['taxonomy'];
 				$key = sha1( $taxonomy . ':' . $term['slug'] );
 
-				if ( isset( $this->mapping['term'][ $key ] ) ) {
-					$term_ids[ $taxonomy ][] = (int) $this->mapping['term'][ $key ];
-				}
-				else {
+				if ( isset( $processed_terms[ $key ] ) ) {
+					$term_ids[ $taxonomy ][] = (int) $processed_terms[ $key ];
+				} else {
 					$meta[] = array( 'key' => '_wxr_import_term', 'value' => $term );
 					$requires_remapping = true;
 				}
@@ -831,9 +833,9 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		$num_comments       = 0;
-		$processed_comments = cdi_cache()->get_group( 'comments', 'mapping' );
-		$processed_users    = cdi_cache()->get_group( 'users', 'mapping' );
-		$remap_comments     = cdi_cache()->get_group( 'comments', 'requires_remapping' );
+		$processed_comments = cdi_cache()->get( 'comments', 'mapping' );
+		$processed_users    = cdi_cache()->get( 'users', 'mapping' );
+		$remap_comments     = cdi_cache()->get( 'comments', 'requires_remapping' );
 
 		// Sort by ID to avoid excessive remapping later
 		usort( $comments, array( $this, 'sort_comments_by_id' ) );
@@ -942,11 +944,139 @@ class Cherry_WXR_Importer extends WP_Importer {
 	}
 
 	/**
+	 * Process and import post meta items.
+	 *
+	 * @param  array $meta    List of meta data arrays.
+	 * @param  int   $post_id Post to associate with.
+	 * @param  array $post    Post data.
+	 * @return int|WP_Error   Number of meta items imported on success, error otherwise.
+	 */
+	protected function process_post_meta( $meta, $post_id, $post ) {
+
+		if ( empty( $meta ) ) {
+			return true;
+		}
+
+		$processed_users = cdi_cache()->get( 'users', 'mapping' );
+
+		foreach ( $meta as $meta_item ) {
+			/**
+			 * Pre-process post meta data.
+			 *
+			 * @param array $meta_item Meta data. (Return empty to skip.)
+			 * @param int $post_id Post the meta is attached to.
+			 */
+			$meta_item = apply_filters( 'wxr_importer.pre_process.post_meta', $meta_item, $post_id );
+			if ( empty( $meta_item ) ) {
+				return false;
+			}
+
+			$key = apply_filters( 'import_post_meta_key', $meta_item['key'], $post_id, $post );
+			$value = false;
+
+			if ( '_edit_last' == $key ) {
+				$value = intval( $meta_item['value'] );
+				if ( ! isset( $processed_users[ $value ] ) ) {
+					// Skip!
+					continue;
+				}
+
+				$value = $processed_users[ $value ];
+			}
+
+			if ( $key ) {
+				// export gets meta straight from the DB so could have a serialized string
+				if ( ! $value ) {
+					$value = maybe_unserialize( $meta_item['value'] );
+				}
+
+				add_post_meta( $post_id, $key, $value );
+				do_action( 'import_post_meta', $post_id, $key, $value );
+
+				// if the post has a featured image, take note of this in case of remap
+				if ( '_thumbnail_id' == $key ) {
+					cdi_cache()->update( $post_id, (int) $value, 'featured_images' );
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Attempt to create a new menu item from import data
+	 *
+	 * Fails for draft, orphaned menu items and those without an associated nav_menu
+	 * or an invalid nav_menu term. If the post type or term object which the menu item
+	 * represents doesn't exist then the menu item will not be imported (waits until the
+	 * end of the import to retry again before discarding).
+	 *
+	 * @param array $item Menu item details from WXR file
+	 */
+	protected function process_menu_item_meta( $post_id, $data, $meta ) {
+
+		$item_type          = get_post_meta( $post_id, '_menu_item_type', true );
+		$original_object_id = get_post_meta( $post_id, '_menu_item_object_id', true );
+		$object_id          = null;
+		$processed_term_id  = cdi_cache()->get( 'term_id', 'mapping' );
+		$processed_posts    = cdi_cache()->get( 'posts', 'mapping' );
+		$missing_items      = cdi_cache()->get( 'missing_menu_items' );
+		$remap_posts        = cdi_cache()->get( 'posts', 'requires_remapping' );
+
+		$this->logger->debug( sprintf( 'Processing menu item %s', $item_type ) );
+
+		$requires_remapping = false;
+		switch ( $item_type ) {
+			case 'taxonomy':
+				if ( isset( $processed_term_id[ $original_object_id ] ) ) {
+					$object_id = $processed_term_id[ $original_object_id ];
+				} else {
+					add_post_meta( $post_id, '_wxr_import_menu_item', wp_slash( $original_object_id ) );
+					$requires_remapping = true;
+				}
+				break;
+
+			case 'post_type':
+				if ( isset( $processed_posts[ $original_object_id ] ) ) {
+					$object_id = $processed_posts[ $original_object_id ];
+				} else {
+					add_post_meta( $post_id, '_wxr_import_menu_item', wp_slash( $original_object_id ) );
+					$requires_remapping = true;
+				}
+				break;
+
+			case 'custom':
+				// Custom refers to itself, wonderfully easy.
+				$object_id = $post_id;
+				break;
+
+			default:
+				// associated object is missing or not imported yet, we'll retry later
+				$missing_items[] = $item;
+				$this->logger->debug( 'Unknown menu item type' );
+				break;
+		}
+
+		if ( $requires_remapping ) {
+			$remap_posts[ $post_id ] = true;
+			cdi_cache()->update( 'posts', $remap_posts, 'requires_remapping' );
+		}
+
+		if ( empty( $object_id ) ) {
+			// Nothing needed here.
+			return;
+		}
+
+		$this->logger->debug( sprintf( 'Menu item %d mapped to %d', $original_object_id, $object_id ) );
+		update_post_meta( $post_id, '_menu_item_object_id', wp_slash( $object_id ) );
+	}
+
+	/**
 	 * If fetching attachments is enabled then attempt to create a new attachment
 	 *
-	 * @param  array  $post Attachment post details from WXR
-	 * @param  string $url  URL to fetch attachment from
-	 * @return int|WP_Error Post ID on success, WP_Error otherwise
+	 * @param  array  $post Attachment post details from WXR.
+	 * @param  string $url  URL to fetch attachment from.
+	 * @return int|WP_Error Post ID on success, WP_Error otherwise.
 	 */
 	protected function process_attachment( $post, $meta, $remote_url ) {
 
@@ -976,7 +1106,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		$info = wp_check_filetype( $upload['file'] );
 		if ( ! $info ) {
-			return new WP_Error( 'attachment_processing_error', __( 'Invalid file type', 'wordpress-importer' ) );
+			return new WP_Error( 'attachment_processing_error', __( 'Invalid file type', 'cherry-data-importer' ) );
 		}
 
 		$post['post_mime_type'] = $info['type'];
@@ -997,12 +1127,12 @@ class Cherry_WXR_Importer extends WP_Importer {
 		wp_update_attachment_metadata( $post_id, $attachment_metadata );
 
 		// Map this image URL later if we need to
-		$this->url_remap[ $remote_url ] = $upload['url'];
+		cdi_cache()->update( $remote_url, $upload['url'], 'url_remap' );
 
 		// If we have a HTTPS URL, ensure the HTTP URL gets replaced too
 		if ( substr( $remote_url, 0, 8 ) === 'https://') {
 			$insecure_url = 'http' . substr( $remote_url, 5 );
-			$this->url_remap[ $insecure_url ] = $upload['url'];
+			cdi_cache()->update( $insecure_url, $upload['url'], 'url_remap' );
 		}
 
 		if ( $this->options['aggressive_url_search'] ) {
@@ -1019,6 +1149,92 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		return $post_id;
+	}
+
+	/**
+	 * Attempt to download a remote file attachment
+	 *
+	 * @param  string $url  URL of item to fetch.
+	 * @param  array  $post Attachment details.
+	 * @return array|WP_Error Local file location details on success, WP_Error otherwise.
+	 */
+	protected function fetch_remote_file( $url, $post ) {
+		// extract the file name and extension from the url
+		$file_name = basename( $url );
+
+		// get placeholder file in the upload dir with a unique, sanitized filename
+		$upload = wp_upload_bits( $file_name, 0, '', $post['upload_date'] );
+		if ( $upload['error'] ) {
+			return new WP_Error( 'upload_dir_error', $upload['error'] );
+		}
+
+		// fetch the remote url and write it to the placeholder file
+		$response = wp_remote_get( $url, array(
+			'stream'   => true,
+			'filename' => $upload['file']
+		) );
+
+		// request failed
+		if ( is_wp_error( $response ) ) {
+			@unlink( $upload['file'] );
+			return $response;
+		}
+
+		$code = (int) wp_remote_retrieve_response_code( $response );
+
+		// make sure the fetch was successful
+		if ( $code !== 200 ) {
+			@unlink( $upload['file'] );
+			return new WP_Error(
+				'import_file_error',
+				sprintf(
+					__( 'Remote server returned %1$d %2$s for %3$s', 'cherry-data-importer' ),
+					$code,
+					get_status_header_desc( $code ),
+					$url
+				)
+			);
+		}
+
+		$filesize = filesize( $upload['file'] );
+		$headers = wp_remote_retrieve_headers( $response );
+
+		if ( isset( $headers['content-length'] ) && $filesize != $headers['content-length'] ) {
+			@unlink( $upload['file'] );
+			return new WP_Error(
+				'import_file_error',
+				__( 'Remote file is incorrect size', 'cherry-data-importer' )
+			);
+		}
+
+		if ( 0 == $filesize ) {
+			@unlink( $upload['file'] );
+			return new WP_Error(
+				'import_file_error',
+				__( 'Zero size file downloaded', 'cherry-data-importer' )
+			);
+		}
+
+		$max_size = (int) $this->max_attachment_size();
+		if ( ! empty( $max_size ) && $filesize > $max_size ) {
+			@unlink( $upload['file'] );
+			return new WP_Error(
+				'import_file_error',
+				sprintf( __( 'Remote file is too large, limit is %s', 'cherry-data-importer' ), size_format( $max_size ) )
+			);
+		}
+
+		return $upload;
+	}
+
+	/**
+	 * Decide what the maximum file size for downloaded attachments is.
+	 * Default is 0 (unlimited), can be filtered via import_attachment_size_limit
+	 *
+	 * @return int Maximum attachment file size to import
+	 */
+	protected function max_attachment_size() {
+		return apply_filters( 'import_attachment_size_limit', 0 );
 	}
 
 	/**
@@ -1049,6 +1265,19 @@ class Cherry_WXR_Importer extends WP_Importer {
 		cdi_cache()->update( 'posts', $existing_posts, 'exists' );
 
 		return $exists;
+	}
+
+	/**
+	 * Mark the post as existing.
+	 *
+	 * @param array $data Post data to mark as existing.
+	 * @param int $post_id Post ID.
+	 */
+	protected function mark_post_exists( $data, $post_id ) {
+		$exists_key                          = $data['guid'];
+		$existing_posts                      = cdi_cache()->get( 'posts', 'exists' );
+		$this->exists['post'][ $exists_key ] = $post_id;
+		cdi_cache()->update( 'posts', $existing_posts, 'exists' );
 	}
 
 	/**
@@ -1087,8 +1316,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 	 * @param int $comment_id Comment ID.
 	 */
 	protected function mark_comment_exists( $data, $comment_id ) {
-		$exists_key = sha1( $data['comment_author'] . ':' . $data['comment_date'] );
-		$existing_comments = cdi_cache()->get( 'comments', 'exists' );
+		$exists_key                       = sha1( $data['comment_author'] . ':' . $data['comment_date'] );
+		$existing_comments                = cdi_cache()->get( 'comments', 'exists' );
 		$existing_comments[ $exists_key ] = $comment_id;
 		cdi_cache()->update( 'comments', $existing_comments, 'exists' );
 	}
@@ -1114,7 +1343,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		if ( ! $status ) {
-			return new WP_Error( 'wxr_importer.cannot_parse', __( 'Could not open the file for parsing', 'wordpress-importer' ) );
+			return new WP_Error( 'wxr_importer.cannot_parse', __( 'Could not open the file for parsing', 'cherry-data-importer' ) );
 		}
 
 		return $reader;
