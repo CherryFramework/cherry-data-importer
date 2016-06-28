@@ -119,6 +119,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 */
 		public function load() {
 			require $this->path( 'includes/class-cherry-data-importer-cache.php' );
+			require $this->path( 'includes/class-cherry-data-importer-logger.php' );
 		}
 
 		/**

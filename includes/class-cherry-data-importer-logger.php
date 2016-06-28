@@ -60,6 +60,16 @@ if ( ! class_exists( 'Cherry_Data_Importer_Logger' ) ) {
 		}
 
 		/**
+		 * Add error message into log.
+		 *
+		 * @param  string $message Log message.
+		 * @return void
+		 */
+		public function error( $message = null ) {
+			$this->add_message( $message, 'error' );
+		}
+
+		/**
 		 * Add passed message into passed log group.
 		 *
 		 * @param  string $message Log message.
@@ -67,7 +77,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Logger' ) ) {
 		 * @return void
 		 */
 		public function add_message( $message = null, $type = 'info' ) {
-			$messages   = cdi_cache()->get( $type, 'log' );
+
+			$messages = cdi_cache()->get( $type, 'log' );
+
+			if ( empty( $messages ) || ! is_array( $messages ) ) {
+				$messages = array();
+			}
+
 			$messages[] = $message;
 			cdi_cache()->update( $type, $message, 'log' );
 		}

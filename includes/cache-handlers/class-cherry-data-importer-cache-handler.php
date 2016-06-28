@@ -54,6 +54,14 @@ if ( ! class_exists( 'Cherry_Data_Importer_Cache_Handler' ) ) {
 		public function get_group( $group = 'global' ) {}
 
 		/**
+		 * Returns whole stored group
+		 *
+		 * @return void
+		 */
+		public function clear_cache( $group = null ) {}
+
+
+		/**
 		 * Returns current value by key
 		 *
 		 * @return array

@@ -18,7 +18,7 @@
 
 			$.ajax({
 				url: window.ajaxurl,
-				type: 'post',
+				type: 'get',
 				dataType: 'json',
 				data: data,
 				error: function() {

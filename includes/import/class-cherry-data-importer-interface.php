@@ -46,7 +46,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 *
 		 * @var integer
 		 */
-		private $chunk_size = 30;
+		private $chunk_size = 20;
 
 		/**
 		 * Constructor for the class
@@ -211,6 +211,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$chunks = cdi_cache()->get( 'chunks_count' );
 
 			if ( $chunks == $chunk ) {
+				cdi_cache()->clear_cache();
 				$data = array(
 					'import_end' => true,
 					'complete'   => 100,
@@ -237,7 +238,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				return $this->importer;
 			}
 
-			require_once cdi()->path( 'import/class-cherry-wxr-importer.php' );
+			require_once cdi()->path( 'includes/import/class-cherry-wxr-importer.php' );
 
 			$options = array();
 			$file    = $this->get_setting( array( 'xml', 'path' ) );

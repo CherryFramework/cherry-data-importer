@@ -146,6 +146,16 @@ if ( ! class_exists( 'Cherry_Data_Importer_Cache' ) ) {
 		}
 
 		/**
+		 * Clear cache for passed group or all cache if group not provided.
+		 *
+		 * @param  string $group Caching group to clear.
+		 * @return bool
+		 */
+		public function clear_cache( $group = null ) {
+			return $this->handler->clear_cache( $group );
+		}
+
+		/**
 		 * Returns the instance.
 		 *
 		 * @since  1.0.0

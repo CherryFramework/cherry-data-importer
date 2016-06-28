@@ -114,6 +114,22 @@ if ( ! class_exists( 'Cherry_Data_Importer_Session_Cache' ) ) {
 
 		}
 
+		/**
+		 * Returns whole stored group
+		 *
+		 * @return void
+		 */
+		public function clear_cache( $group = null ) {
+
+			if ( null !== $group ) {
+				$_SESSION[ $this->base_group ][ $group ] = array();
+			} else {
+				$_SESSION[ $this->base_group ] = array();
+			}
+
+		}
+
+
 	}
 
 }
