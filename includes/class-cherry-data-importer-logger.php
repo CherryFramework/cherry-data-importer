@@ -85,7 +85,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Logger' ) ) {
 			}
 
 			$messages[] = $message;
-			cdi_cache()->update( $type, $message, 'log' );
+			cdi_cache()->update( $type, $messages, 'log' );
 		}
 
 	}

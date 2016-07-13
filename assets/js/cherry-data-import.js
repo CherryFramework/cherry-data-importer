@@ -16,6 +16,8 @@
 
 		ajaxRequest: function( data ) {
 
+			data.nonce = window.CherryDataImport.nonce;
+
 			$.ajax({
 				url: window.ajaxurl,
 				type: 'get',

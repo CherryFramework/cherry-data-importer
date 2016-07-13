@@ -120,6 +120,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		public function load() {
 			require $this->path( 'includes/class-cherry-data-importer-cache.php' );
 			require $this->path( 'includes/class-cherry-data-importer-logger.php' );
+			require $this->path( 'includes/class-cherry-data-importer-tools.php' );
 		}
 
 		/**
@@ -191,6 +192,10 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		public function register_assets() {
 
 			wp_register_script( 'cherry-data-import', $this->assets_url( 'js/%s/cherry-data-import.js' ) );
+
+			wp_localize_script( 'cherry-data-import', 'CherryDataImport', array(
+				'nonce' => wp_create_nonce( 'cherry-data-import' ),
+			) );
 
 		}
 
