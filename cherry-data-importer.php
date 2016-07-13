@@ -73,12 +73,25 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 
 			add_action( 'init', array( $this, 'start_session' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
+			add_filter( 'upload_mimes', array( $this, 'allow_upload_xml' ) );
 
 			$this->load();
 			$this->load_import();
 
 			define( 'CHERRY_DEBUG', true );
 
+		}
+
+		/**
+		 * Add XML to alowed MIME types to upload
+		 *
+		 * @param  array $mimes Allowed MIME-types.
+		 * @return array
+		 */
+		public function allow_upload_xml( $mimes ) {
+			$mimes = array_merge( $mimes, array( 'xml' => 'application/xml' ) );
+			return $mimes;
 		}
 
 		/**
@@ -191,11 +204,30 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 */
 		public function register_assets() {
 
+			wp_register_style( 'cherry-data-import', $this->assets_url( 'css/cherry-data-import.css' ) );
 			wp_register_script( 'cherry-data-import', $this->assets_url( 'js/%s/cherry-data-import.js' ) );
 
-			wp_localize_script( 'cherry-data-import', 'CherryDataImport', array(
-				'nonce' => wp_create_nonce( 'cherry-data-import' ),
+			wp_localize_script( 'cherry-data-import', 'CherryDataImportVars', array(
+				'nonce'       => wp_create_nonce( 'cherry-data-import' ),
+				'autorun'     => ( ! empty( $_GET['step'] ) && 2 == $_GET['step'] ) ? true : false,
+				'uploadTitle' => esc_html__( 'Select or upload file with demo content', 'cherry-data-importer' ),
+				'uploadBtn'   => esc_html__( 'Select', 'cherry-data-importer' ),
 			) );
+
+		}
+
+		/**
+		 * Enqueue globally required assets
+		 *
+		 * @return void
+		 */
+		public function enqueue_assets() {
+
+			if ( ! isset( $_GET['import'] ) || 'cherry-import' !== $_GET['import'] ) {
+				return;
+			}
+
+			wp_enqueue_style( 'cherry-data-import' );
 
 		}
 

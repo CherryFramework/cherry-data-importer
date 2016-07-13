@@ -28,6 +28,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		private static $instance = null;
 
 		/**
+		 * Holder for admin page title
+		 *
+		 * @var string
+		 */
+		private $page_title = null;
+
+		/**
 		 * Returns available widgets data.
 		 *
 		 * @return array
@@ -50,6 +57,38 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 
 			return apply_filters( 'cherry_data_export_available_widgets', $available_widgets );
 
+		}
+
+		/**
+		 * Set page title
+		 *
+		 * @param string $title Page title
+		 */
+		public function set_title( $title = null ) {
+			$this->page_title = $title;
+		}
+
+		/**
+		 * Get page title
+		 *
+		 * @return string
+		 */
+		public function get_page_title() {
+			return $this->page_title;
+		}
+
+		/**
+		 * Get current page URL
+		 *
+		 * @return string
+		 */
+		public function get_page_url() {
+			return sprintf(
+				'%1$s://%2$s/%3$s',
+				$_SERVER['REQUEST_SCHEME'],
+				$_SERVER['HTTP_HOST'],
+				$_SERVER['REQUEST_URI']
+			);
 		}
 
 		/**

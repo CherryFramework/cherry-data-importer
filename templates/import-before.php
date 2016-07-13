@@ -1,10 +1,15 @@
 <?php
 /**
- * Main import template
+ * Starter import template
  */
 ?>
 <div>
-	Complete: <br>
-	<progress max="100" value="0"></progress>
+	<?php echo cdi_interface()->get_welcome_message(); ?>
+	<?php echo cdi_interface()->get_import_files_select(); ?>
+	<?php echo cdi_interface()->get_import_file_input(); ?>
+	<input type="hidden" name="referrer" value="<?php echo cdi_tools()->get_page_url(); ?>">
+	<button id="cherry-import-start" class="button button-primary">
+		<?php esc_html_e( 'Start import', 'cherry-data-importer' ); ?>
+		<span class="dashicons dashicons-arrow-right-alt"></span>
+	</button>
 </div>
-<button class="button button-primary" id="cherry-import-start">Start Import</button>

@@ -54,6 +54,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		function __construct() {
 			add_action( 'admin_init', array( $this, 'init' ) );
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
+			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
 		}
 
 		/**
@@ -161,14 +162,17 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 
 			switch ( $step ) {
 				case 2:
+					cdi_tools()->set_title( esc_html__( 'Step 2: Importing sample data', 'cherry-data-importer' ) );
 					$this->import_step();
 					break;
 
 				case 3:
+					cdi_tools()->set_title( esc_html__( 'Import finished', 'cherry-data-importer' ) );
 					$this->import_after();
 					break;
 
 				default:
+					cdi_tools()->set_title( esc_html__( 'Step 1: Select source to import', 'cherry-data-importer' ) );
 					$this->import_before();
 					break;
 			}
@@ -366,6 +370,95 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					count( $path )
 				);
 			}
+
+		}
+
+		/**
+		 * Returns HTML-markup of import files select
+		 *
+		 * @return string
+		 */
+		public function get_import_files_select( $before = '<div>', $after = '</div>' ) {
+
+			$files = $this->get_setting( array( 'xml', 'path' ) );
+
+			if ( ! $files && ! is_array( $files ) ) {
+				return;
+			}
+
+			if ( 1 >= count( $files ) ) {
+				return;
+			}
+
+			$wrap_format = '<select name="import_file">%s</select>';
+			$item_format = '<option value="%1$s">%2$s</option>';
+
+			$result = '';
+
+			foreach ( $files as $name => $file ) {
+				$result .= sprintf( $item_format, base64_encode( $file ), $name );
+			}
+
+			return $before . sprintf( $wrap_format, $result ) . $after;
+
+		}
+
+		/**
+		 * Retuns HTML markup for import file uploader
+		 *
+		 * @param  string $before HTML markup before input.
+		 * @param  string $after  HTML markup after input.
+		 * @return string
+		 */
+		public function get_import_file_input( $before = '<div>', $after = '</div>' ) {
+
+			if ( ! $this->get_setting( array( 'xml', 'use_upload' ) ) ) {
+				return;
+			}
+
+			$result = '<div class="import-file">';
+
+			$result .= '<input type="text" name="import_file" class="import-file__input">';
+			$result .= '<button class="button button-primary" id="cherry-file-upload">';
+			$result .= esc_html__( 'Upload File', 'cherry-data-importer' );
+			$result .= '</button>';
+
+			$result .= '</div>';
+
+			return $result;
+
+		}
+
+		/**
+		 * Retrieve XML file path by URL
+		 *
+		 * @return string
+		 */
+		public function get_file_path() {
+
+			if ( ! isset( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry-data-import' ) ) {
+				wp_send_json_error( array(
+					'message' => esc_html__( 'You don\'t have permissions to do this', 'cherry-data-importer' ),
+				) );
+			}
+
+			if ( ! current_user_can( 'import' ) ) {
+				wp_send_json_error( array(
+					'message' => esc_html__( 'You don\'t have permissions to do this', 'cherry-data-importer' ),
+				) );
+			}
+
+			if ( ! isset( $_REQUEST['file'] ) ) {
+				wp_send_json_error( array(
+					'message' => esc_html__( 'XML file not passed', 'cherry-data-importer' ),
+				) );
+			}
+
+			$path = str_replace( home_url( '/' ), ABSPATH, esc_url( $_REQUEST['file'] ) );
+
+			wp_send_json_success( array(
+				'path' => base64_encode( $path ),
+			) );
 
 		}
 
