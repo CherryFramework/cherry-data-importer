@@ -123,12 +123,112 @@ class Cherry_WXR_Importer extends WP_Importer {
 			}
 
 			$count = $this->increment( $count );
+			$this->update_summary();
 
 		}
 
 		cdi_cache()->update( 'total_count', $count );
 
+		$summary = cdi_cache()->get( 'import_summary' );
 		timer_stop( true, 4 );
+
+	}
+
+	/**
+	 * Update import summary counts
+	 *
+	 * @return void
+	 */
+	public function update_summary() {
+
+		$summary = cdi_cache()->get( 'import_summary' );
+
+		if ( ! $summary ) {
+			$summary = array(
+				'posts'    => 0,
+				'authors'  => 0,
+				'media'    => 0,
+				'comments' => 0,
+				'terms'    => 0,
+			);
+		}
+
+		switch ( $this->reader->name ) {
+			case 'wp:category':
+			case 'wp:tag':
+			case 'wp:term':
+				$summary['terms']++;
+				break;
+
+			case 'wp:wp_author':
+				$summary['authors']++;
+				break;
+
+			case 'wp:comment':
+				$summary['comments']++;
+				break;
+
+			case 'item':
+
+				$node = $this->reader->expand();
+
+				foreach ( $node->childNodes as $child ) {
+
+					// We only care about child elements
+					if ( $child->nodeType !== XML_ELEMENT_NODE ) {
+						continue;
+					}
+
+					if ( 'wp:post_type' !== $child->tagName ) {
+						continue;
+					}
+
+					if ( 'attachment' === $child->textContent ) {
+						$summary['media']++;
+					} else {
+						$summary['posts']++;
+					}
+
+					break; // Left loop
+
+				}
+
+				break;
+
+			default:
+				// Skip this node, probably handled by something already
+				break;
+		}
+
+		cdi_cache()->update( 'import_summary', $summary );
+
+	}
+
+	/**
+	 * Update processed items summeary
+	 *
+	 * @param  string $type Processed item type to update (posts, authors, media, comments, terms).
+	 * @return void
+	 */
+	public function update_processed_summary( $type ) {
+
+		$processed = cdi_cache()->get( 'processed_summary' );
+
+		if ( ! is_array( $processed ) ) {
+			$processed = array(
+				'posts'    => 0,
+				'authors'  => 0,
+				'media'    => 0,
+				'comments' => 0,
+				'terms'    => 0,
+			);
+		}
+
+		if ( isset( $processed[ $type ] ) ) {
+			$processed[ $type ]++;
+		}
+
+		cdi_cache()->update( 'processed_summary', $processed );
 
 	}
 
@@ -205,6 +305,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 				case 'generator':
 					cdi_cache()->update( 'generator', $this->reader->readString() );
+
 					$this->next();
 					break;
 
@@ -212,6 +313,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 					$title = $this->reader->readString();
 					cdi_cache()->update( 'title', $title );
 					update_option( 'blogname', $title );
+
 					$this->next();
 					break;
 
@@ -219,16 +321,19 @@ class Cherry_WXR_Importer extends WP_Importer {
 					$description = $this->reader->readString();
 					cdi_cache()->update( 'description', $description );
 					update_option( 'blogdescription', $description );
+
 					$this->next();
 					break;
 
 				case 'wp:base_site_url':
 					cdi_cache()->update( 'siteurl', $this->reader->readString() );
+
 					$this->next();
 					break;
 
 				case 'wp:base_blog_url':
 					cdi_cache()->update( 'home', $this->reader->readString() );
+
 					$this->next();
 					break;
 
@@ -317,14 +422,14 @@ class Cherry_WXR_Importer extends WP_Importer {
 					$parsed = $this->parse_term_node( $node, 'tag' );
 					if ( is_wp_error( $parsed ) ) {
 						// Skip the rest of this post
-						$this->reader->next();
+						$this->next();
 						break;
 					}
 
 					$status = $this->process_term( $parsed['data'], $parsed['meta'] );
 
 					// Handled everything in this node, move on to the next
-					$this->reader->next();
+					$this->next();
 					break;
 
 				case 'wp:term':
@@ -333,14 +438,14 @@ class Cherry_WXR_Importer extends WP_Importer {
 					$parsed = $this->parse_term_node( $node );
 					if ( is_wp_error( $parsed ) ) {
 						// Skip the rest of this post
-						$this->reader->next();
+						$this->next();
 						break;
 					}
 
 					$status = $this->process_term( $parsed['data'], $parsed['meta'] );
 
 					// Handled everything in this node, move on to the next
-					$this->reader->next();
+					$this->next();
 					break;
 
 				default:
@@ -1064,6 +1169,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 		$parent_id   = isset( $data['post_parent'] ) ? (int) $data['post_parent'] : 0;
 		$author_id   = isset( $data['post_author'] ) ? (int) $data['post_author'] : 0;
 
+		$item_type = ( 'attachment' === $data['post_type'] ) ? 'media' : 'posts';
+
 		$processed_posts     = cdi_cache()->get( 'posts', 'mapping' );
 		$processed_user_slug = cdi_cache()->get( 'user_slug', 'mapping' );
 		$processed_terms     = cdi_cache()->get( 'terms', 'mapping' );
@@ -1083,6 +1190,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				$data['post_title'],
 				$data['post_type']
 			) );
+			$this->update_processed_summary( $item_type );
 			return false;
 		}
 
@@ -1097,6 +1205,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			// Even though this post already exists, new comments might need importing
 			$this->process_comments( $comments, $original_id, $data, $post_exists );
 
+			$this->update_processed_summary( $item_type );
 			return false;
 		}
 
@@ -1170,6 +1279,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 					__( 'Skipping attachment "%s", fetching attachments disabled' ),
 					$data['post_title']
 				) );
+
+				$this->update_processed_summary( $item_type );
 				return false;
 			}
 			$remote_url = ! empty( $data['attachment_url'] ) ? $data['attachment_url'] : $data['guid'];
@@ -1197,6 +1308,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			 * @param array $terms Raw term data, already processed.
 			 */
 			do_action( 'wxr_importer.process_failed.post', $post_id, $data, $meta, $comments, $terms );
+
+			$this->update_processed_summary( $item_type );
 			return false;
 		}
 
@@ -1255,6 +1368,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			$this->process_menu_item_meta( $post_id, $data, $meta );
 		}
 
+		$this->update_processed_summary( $item_type );
+
 		/**
 		 * Post processing completed.
 		 *
@@ -1310,6 +1425,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				$processed_user_slug[ $original_slug ] = $existing;
 			}
 
+			$this->update_processed_summary( 'authors' );
 			return false;
 		}
 
@@ -1319,6 +1435,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			// Ensure we note the mapping too
 			$processed_users[ $original_id ] = $existing;
 
+			$this->update_processed_summary( 'authors' );
 			return false;
 		}
 
@@ -1365,6 +1482,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			* @param array $userdata Raw data imported for the user.
 			*/
 			do_action( 'wxr_importer.process_failed.user', $user_id, $userdata );
+			$this->update_processed_summary( 'authors' );
 			return false;
 		}
 
@@ -1383,6 +1501,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			$original_id,
 			$user_id
 		) );
+
+		$this->update_processed_summary( 'authors' );
 
 		// TODO: Implement meta handling once WXR includes it
 		/**
@@ -1424,17 +1544,20 @@ class Cherry_WXR_Importer extends WP_Importer {
 		if ( $existing = $this->term_exists( $data ) ) {
 			$processed_terms[ $mapping_key ]   = $existing;
 			$processed_term_id[ $original_id ] = $existing;
+
+			$this->update_processed_summary( 'terms' );
 			return false;
 		}
 
 		// WP really likes to repeat itself in export files
 		if ( isset( $processed_terms[ $mapping_key ] ) ) {
+			$this->update_processed_summary( 'terms' );
 			return false;
 		}
 
 		$termdata = array();
 		$allowed = array(
-			'slug' => true,
+			'slug'        => true,
 			'description' => true,
 		);
 
@@ -1480,6 +1603,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			 * @param array $meta Meta data supplied for the term.
 			 */
 			do_action( 'wxr_importer.process_failed.term', $result, $data, $meta );
+			$this->update_processed_summary( 'terms' );
 			return false;
 		}
 
@@ -1503,6 +1627,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 		) );
 
 		do_action( 'wp_import_insert_term', $term_id, $data );
+
+		$this->update_processed_summary( 'terms' );
 
 		/**
 		 * Term processing completed.
@@ -1619,6 +1745,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 				$value = maybe_unserialize( $meta_item['value'] );
 				add_comment_meta( $comment_id, wp_slash( $meta_item['key'] ), wp_slash( $value ) );
 			}
+
+			$this->update_processed_summary( 'comments' );
 
 			/**
 			 * Post processing completed.

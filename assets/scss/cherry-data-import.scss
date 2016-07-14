@@ -1,7 +1,98 @@
+$primaryColor: #298ffc;
+$basisColor:   #f1f1f1;
+$bordersColor: #e5e5e5;
+$textColor:    #23282d;
+$bodyColor:    #fff;
+
+.cdi-kit {
+	background: $bodyColor;
+	color: $textColor;
+	padding: 30px;
+	border: 1px solid $bordersColor;
+	font-size: 14px;
+	.page-title {
+		margin: 0;
+		padding: 0 0 30px;
+		font-size: 20px;
+		line-height: 24px;
+	}
+}
+
 .button {
 	.dashicons,
 	.dashicons-before::before {
 		font-size: 14px;
 		vertical-align: bottom;
+	}
+}
+
+.cdi-content {
+	max-width: 1000px;
+}
+
+.cdi-progress {
+	height: 24px;
+	border-radius: 12px;
+	background: $basisColor;
+	position: relative;
+	overflow: hidden;
+	min-width: 150px;
+	&__bar {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		background: $primaryColor;
+	}
+	&__label {
+		content: attr( data-width );
+		color: #fff;
+		position: absolute;
+		width: 100%;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		font-size: 14px;
+		line-height: 24px;
+		text-align: center;
+	}
+	&.progress-tiny {
+		height: 9px;
+		border-radius: 3px;
+	}
+}
+
+.cdi-install-summary {
+	width: 100%;
+	margin: 35px 0 0 0;
+	border: 2px solid $bordersColor;
+	border-radius: 5px;
+	border-collapse: collapse;
+
+	th {
+		font-weight: normal;
+		text-align: center;
+		padding: 10px 15px;
+	}
+
+	td {
+		padding: 10px 15px;
+	}
+
+	tbody {
+		tr {
+			border-top: 1px solid $bordersColor;
+		}
+	}
+	.completed-cell {
+		border-left: 1px solid $bordersColor;
+		border-right: 1px solid $bordersColor;
+		text-align: center;
+		+ td {
+			text-align: center;
+		}
+	}
+	&__total {
+		color: $primaryColor;
 	}
 }

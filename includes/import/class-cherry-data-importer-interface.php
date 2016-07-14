@@ -259,8 +259,9 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				) );
 			}
 
-			$chunk  = intval( $_REQUEST['chunk'] );
-			$chunks = cdi_cache()->get( 'chunks_count' );
+			$chunk     = intval( $_REQUEST['chunk'] );
+			$chunks    = cdi_cache()->get( 'chunks_count' );
+			$processed = cdi_cache()->get( 'processed_summary' );
 
 			switch ( $chunk ) {
 
@@ -272,6 +273,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					$data = array(
 						'import_end' => true,
 						'complete'   => 100,
+						'processed'  => $processed,
 					);
 
 					break;
@@ -285,9 +287,10 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					$importer->chunked_import( $this->chunk_size, $offset );
 
 					$data = array(
-						'action'   => 'cherry-data-import-chunk',
-						'chunk'    => $chunk + 1,
-						'complete' => round( ( $chunk * 100 ) / $chunks ),
+						'action'    => 'cherry-data-import-chunk',
+						'chunk'     => $chunk + 1,
+						'complete'  => round( ( $chunk * 100 ) / $chunks ),
+						'processed' => $processed,
 					);
 
 					break;
@@ -310,7 +313,19 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			require_once cdi()->path( 'includes/import/class-cherry-wxr-importer.php' );
 
 			$options = array();
-			$file    = $this->get_setting( array( 'xml', 'path' ) );
+			$file    = null;
+
+			if ( isset( $_REQUEST['file'] ) ) {
+				$file = cdi_tools()->esc_path( esc_attr( $_REQUEST['file'] ) );
+			}
+
+			if ( ! $file || ! file_exists( $file ) ) {
+				$file = $this->get_setting( array( 'xml', 'path' ) );
+			}
+
+			if ( is_array( $file ) ) {
+				$file = $file[0];
+			}
 
 			return $this->importer = new Cherry_WXR_Importer( $options, $file );
 		}
@@ -390,13 +405,15 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				return;
 			}
 
-			$wrap_format = '<select name="import_file">%s</select>';
-			$item_format = '<option value="%1$s">%2$s</option>';
+			$wrap_format = '<select name="import_file">%1$s</select>';
+			$item_format = '<option value="%1$s" %3$s>%2$s</option>';
+			$selected    = 'selected="selected"';
 
 			$result = '';
 
 			foreach ( $files as $name => $file ) {
-				$result .= sprintf( $item_format, base64_encode( $file ), $name );
+				$result .= sprintf( $item_format, cdi_tools()->secure_path( $file ), $name, $selected );
+				$selected = '';
 			}
 
 			return $before . sprintf( $wrap_format, $result ) . $after;
@@ -417,8 +434,8 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			}
 
 			$result = '<div class="import-file">';
-
-			$result .= '<input type="text" name="import_file" class="import-file__input">';
+			$result .= '<input type="hidden" name="upload_file" class="import-file__input">';
+			$result .= '<input type="text" name="upload_file_nicename" class="import-file__placeholder">';
 			$result .= '<button class="button button-primary" id="cherry-file-upload">';
 			$result .= esc_html__( 'Upload File', 'cherry-data-importer' );
 			$result .= '</button>';
@@ -457,7 +474,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$path = str_replace( home_url( '/' ), ABSPATH, esc_url( $_REQUEST['file'] ) );
 
 			wp_send_json_success( array(
-				'path' => base64_encode( $path ),
+				'path' => cdi_tools()->secure_path( $path ),
 			) );
 
 		}

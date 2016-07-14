@@ -6,12 +6,17 @@
 
 		selectors: {
 			trigger: '#cherry-import-start',
-			upload: '#cherry-file-upload'
+			upload: '#cherry-file-upload',
+			globalProgress: '#cherry-import-progress'
 		},
+
+		globalProgress: null,
 
 		init: function(){
 
 			$( function() {
+
+				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' )
 
 				$( 'body' ).on( 'click', CherryDataImport.selectors.trigger, CherryDataImport.goToImport );
 
@@ -28,6 +33,7 @@
 		ajaxRequest: function( data ) {
 
 			data.nonce = window.CherryDataImportVars.nonce;
+			data.file  = window.CherryDataImportVars.file;
 
 			$.ajax({
 				url: window.ajaxurl,
@@ -42,32 +48,57 @@
 				}
 
 				if ( response.data.complete ) {
-					$('progress').attr( 'value', response.data.complete );
+					CherryDataImport.globalProgress
+						.css( 'width', response.data.complete + '%' )
+						.find( '.cdi-progress__label' ).text( response.data.complete + '%' );
+				}
+
+				if ( response.data.processed ) {
+					$.each( response.data.processed, CherryDataImport.updateSummary );
 				}
 
 			});
 
 		},
 
+		updateSummary: function( index, value ) {
+
+			var $row       = $( 'tr[data-item="' + index + '"]' ),
+				total      = parseInt( $row.data( 'total' ) ),
+				$done      = $( '.cdi-install-summary__done', $row ),
+				$percent   = $( '.cdi-install-summary__percent', $row ),
+				$progress  = $( '.cdi-progress__bar', $row ),
+				percentVal = Math.round( ( parseInt( value ) / total ) * 100 );
+
+			$done.html( value );
+			$percent.html( percentVal );
+			$progress.css( 'width', percentVal + '%' );
+
+		},
+
 		startImport: function() {
 
-			var $button = $(this),
-				data    = {
+			var data    = {
 					action: 'cherry-data-import-chunk',
 					chunk:  1
 				};
 
-			$button.attr( 'disabled', 'disabled' );
 			CherryDataImport.ajaxRequest( data );
 
 		},
 
 		prepareImportArgs: function() {
 
-			var file = null;
+			var file    = null,
+				$upload = $( 'input[name="upload_file"]' ),
+				$select = $( 'select[name="import_file"]' );
 
-			if ( $( 'select[name="import_file"]' ).length ) {
-				file = $( 'select[name="import_file"] option:selected' ).val();
+			if ( $upload.length && '' !== $upload.val() ) {
+				file = $upload.val();
+			}
+
+			if ( $select.length && null == file ) {
+				file = $( 'option:selected', $select ).val();
 			}
 
 			return '&step=2&file=' + file;
@@ -83,10 +114,11 @@
 
 		fileUpload: function() {
 
-			var $button    = $( CherryDataImport.selectors.upload ),
-				$container = $button.closest('.import-file'),
-				$input     = $container.find('.import-file__input'),
-				uploader   = wp.media.frames.file_frame = wp.media({
+			var $button      = $( CherryDataImport.selectors.upload ),
+				$container   = $button.closest('.import-file'),
+				$placeholder = $container.find('.import-file__placeholder'),
+				$input       = $container.find('.import-file__input'),
+				uploader     = wp.media.frames.file_frame = wp.media({
 					title: CherryDataImportVars.uploadTitle,
 					button: {
 						text: CherryDataImportVars.uploadBtn
@@ -104,16 +136,17 @@
 					xmlData    = attachment[0],
 					inputVal   = '';
 
-				$input.val( xmlData.url );
-				CherryDataImport.getFilePath( xmlData.url );
+				$placeholder.val( xmlData.url );
+				CherryDataImport.getFilePath( xmlData.url, $input );
 
 			} );
 
 		},
 
-		getFilePath: function( fileUrl ) {
+		getFilePath: function( fileUrl, $input ) {
 
-			var $importBtn = $( CherryDataImport.selectors.trigger );
+			var $importBtn = $( CherryDataImport.selectors.trigger ),
+				path       = '';
 
 			$importBtn.addClass( 'disabled' );
 
@@ -128,11 +161,13 @@
 				},
 				error: function() {
 					$importBtn.removeClass( 'disabled' );
+					return !1;
 				}
 			}).done( function( response ) {
-
 				$importBtn.removeClass( 'disabled' );
-
+				if ( true === response.success ) {
+					$input.val( response.data.path );
+				}
 			});
 
 		}

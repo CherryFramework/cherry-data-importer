@@ -3,4 +3,5 @@
  * Page footer template
  */
 ?>
+	</div>
 </div>

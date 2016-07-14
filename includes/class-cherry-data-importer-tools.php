@@ -84,11 +84,31 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		 */
 		public function get_page_url() {
 			return sprintf(
-				'%1$s://%2$s/%3$s',
+				'%1$s://%2$s%3$s',
 				$_SERVER['REQUEST_SCHEME'],
 				$_SERVER['HTTP_HOST'],
 				$_SERVER['REQUEST_URI']
 			);
+		}
+
+		/**
+		 * Escape unsecure for public usage part of file path and return base64 encoded result.
+		 *
+		 * @param  string $file Full file path
+		 * @return string
+		 */
+		public function secure_path( $file ) {
+			return base64_encode( str_replace( ABSPATH, '', $file ) );
+		}
+
+		/**
+		 * Gets base64 encoded part of path, decode it and adds server path
+		 *
+		 * @param  string $file Encoded part of path.
+		 * @return string
+		 */
+		public function esc_path( $file ) {
+			return ABSPATH . base64_decode( $file );
 		}
 
 		/**
