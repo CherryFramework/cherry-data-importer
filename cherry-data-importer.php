@@ -78,6 +78,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 
 			$this->load();
 			$this->load_import();
+			$this->load_export();
 
 			define( 'CHERRY_DEBUG', true );
 
@@ -145,6 +146,21 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			require $this->path( 'includes/import/class-cherry-data-importer-interface.php' );
 
 			cdi_interface();
+		}
+
+		/**
+		 * Load export-related files
+		 *
+		 * @return void
+		 */
+		public function load_export() {
+
+			if ( ! is_admin() ) {
+				return;
+			}
+
+			require $this->path( 'includes/export/class-cherry-data-export-interface.php' );
+
 		}
 
 		/**
@@ -222,13 +238,11 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 *
 		 * @return void
 		 */
-		public function enqueue_assets() {
+		public function enqueue_assets( $hook ) {
 
-			if ( ! isset( $_GET['import'] ) || 'cherry-import' !== $_GET['import'] ) {
-				return;
+			if ( ( isset( $_GET['import'] ) && 'cherry-import' === $_GET['import'] ) || 'export.php' === $hook ) {
+				wp_enqueue_style( 'cherry-data-import' );
 			}
-
-			wp_enqueue_style( 'cherry-data-import' );
 
 		}
 

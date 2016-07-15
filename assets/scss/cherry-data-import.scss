@@ -1,5 +1,5 @@
 $primaryColor: #298ffc;
-$basisColor:   #f1f1f1;
+$inputColor:   #f1f1f1;
 $bordersColor: #e5e5e5;
 $textColor:    #23282d;
 $bodyColor:    #fff;
@@ -16,9 +16,41 @@ $bodyColor:    #fff;
 		font-size: 20px;
 		line-height: 24px;
 	}
+	select,
+	input[type="text"] {
+		padding: 15px 20px;
+		border: none;
+		border-radius: 2px;
+		background: $inputColor;
+		line-height: 20px;
+		height: 50px;
+		&:focus {
+			box-shadow: none;
+		}
+	}
+
 }
 
-.button {
+.cdi-btn {
+	display: inline-block;
+	padding: 15px 20px;
+	font-size: 12px;
+	line-height: 20px;
+	text-transform: uppercase;
+	font-weight: bold;
+	border: none;
+	outline: none;
+	background: $primaryColor;
+	color: #fff;
+	cursor: pointer;
+	vertical-align: top;
+	border-radius: 5px;
+	transition: all 200ms linear;
+	text-decoration: none;
+	&:hover {
+		background: darken( $primaryColor, 15% );
+		color: #fff;
+	}
 	.dashicons,
 	.dashicons-before::before {
 		font-size: 14px;
@@ -33,7 +65,7 @@ $bodyColor:    #fff;
 .cdi-progress {
 	height: 24px;
 	border-radius: 12px;
-	background: $basisColor;
+	background: $inputColor;
 	position: relative;
 	overflow: hidden;
 	min-width: 150px;
