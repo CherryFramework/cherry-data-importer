@@ -1,0 +1,1 @@
+!function(n,r){"use strict";r={globalProgress:null,init:function(){n(function(){n("#cherry-export").on("click",function(r){r.preventDefault(),n.ajax({url:window.ajaxurl,type:"get",dataType:"json",data:{action:"cherry-data-export",nonce:cherry_ajax},error:function(){return!1}}).done(function(n){!0===n.success})})})}},r.init()}(jQuery,window.CherryDataExport);

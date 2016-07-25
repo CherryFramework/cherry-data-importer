@@ -33,6 +33,7 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 		function __construct() {
 
 			add_action( 'export_filters', array( $this, 'render_export_form' ) );
+			add_action( 'wp_ajax_cherry-data-export', array( $this, 'run_export' ) );
 
 		}
 
@@ -44,6 +45,33 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 		public function render_export_form() {
 
 			cdi()->get_template( 'export.php' );
+
+		}
+
+		/**
+		 * Run export process
+		 *
+		 * @return void
+		 */
+		public function run_export() {
+
+			if ( ! current_user_can( 'export' ) ) {
+				wp_send_json_error( array( 'message' => 'You don\'t have permissions to do this' ) );
+			}
+
+			if ( empty( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry_ajax_nonce' ) ) {
+				wp_send_json_error( array( 'message' => 'You don\'t have permissions to do this' ) );
+			}
+
+			require cdi()->path( 'includes/export/class-cherry-wxr-exporter.php' );
+
+			$file = cdi_exporter()->do_export();
+
+			if ( $file ) {
+				wp_send_json_success( array( 'file' => $file ) );
+			} else {
+				wp_send_json_error( array( 'message' => __( 'Export failed', 'cherry-data-importer' ) ) );
+			}
 
 		}
 

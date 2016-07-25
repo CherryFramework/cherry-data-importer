@@ -90,6 +90,9 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 			ob_start();
 
+			ini_set( 'max_execution_time', -1 );
+			set_time_limit( 0 );
+
 			$use_custom_export = apply_filters( 'cherry_data_use_custom_export', false );
 
 			if ( $use_custom_export && function_exists( $use_custom_export ) ) {
@@ -106,11 +109,14 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 			$upload_dir      = wp_upload_dir();
 			$upload_base_dir = $upload_dir['basedir'];
+			$upload_base_url = $upload_dir['baseurl'];
+			$filename        = 'sample-data-' . date( 'm-d-Y' ) . '.xml';
+			$xml_dir         = $upload_base_dir . '/' . $filename;
+			$xml_url         = $upload_base_url . '/' . $filename;
 
-			$xml_dir = $upload_base_dir . '/sample-data.xml';
 			file_put_contents( $xml_dir, $xml );
 
-			return $xml_dir;
+			return $xml_url;
 
 		}
 
@@ -138,6 +144,12 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			return $xml;
 		}
 
+		/**
+		 * Prepare exported XML to sending
+		 *
+		 * @param  string $xml Exported XML
+		 * @return string
+		 */
 		private function prepare_data( $xml ) {
 
 			$xml = iconv( 'utf-8', 'utf-8//IGNORE', $xml );
@@ -153,7 +165,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 		public function get_options() {
 
 			$options        = '';
-			$format         = "<wp:%1$s>%2$s</wp:%1$s>\r\n";
+			$format         = "\t\t<wp:%1$s>%2$s</wp:%1$s>\r\n";
 			$export_options = $this->get_options_to_export();
 
 			foreach ( $export_options as $option ) {
@@ -165,12 +177,14 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 				}
 
 				if ( ! empty( $option ) ) {
-					$options .= sprintf( $format, $option, wxr_cdata( $value ) );
+					//$options .= sprintf( $format, $option, wxr_cdata( $value ) );
+					$value   = wxr_cdata( $value );
+					$options .= "\t\t<wp:{$option}>{$value}</wp:{$option}>\r\n";
 				}
 
 			}
 
-			return "<wp:options>" . $options . "</wp:options>\r\n";
+			return "\t<wp:options>\r\n" . $options . "\t</wp:options>\r\n";
 
 		}
 
@@ -247,7 +261,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			$encoded_data = apply_filters( 'cherry_data_export_get_widgets', $encoded_data );
 
 			// Return contents
-			return "<wp:widgets_data>" . wxr_cdata( $encoded_data ) . "</wp:widgets_data>\r\n";
+			return "\t<wp:widgets_data>" . wxr_cdata( $encoded_data ) . "</wp:widgets_data>\r\n";
 
 		}
 
