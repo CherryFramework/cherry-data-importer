@@ -8,22 +8,16 @@
 
 		init: function(){
 
-			$( function() {
+			$( '#cherry-export' ).on( 'click', function( event ) {
 
-				$( '#cherry-export' ).on( 'click', function( event ) {
+				var $this   = $( this ),
+					href    = $this.attr( 'href' );
 
-					var $this   = $( this ),
-						href    = $this.attr( 'href' ),
-						$loader = $this.next( '.cdi-loader' );
+				event.preventDefault();
 
-					event.preventDefault();
+				window.location = href + '&nonce=' + cherry_ajax;
 
-					$loader.removeClass( 'cdi-hidden' );
-					window.location = href + '&nonce=' + cherry_ajax;
-
-				});
-
-			} );
+			});
 
 		},
 
