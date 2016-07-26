@@ -49,6 +49,20 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		private $chunk_size = 20;
 
 		/**
+		 * Returns XML-files count
+		 *
+		 * @var int
+		 */
+		private $xml_count = null;
+
+		/**
+		 * Importer slug
+		 *
+		 * @var string
+		 */
+		public $slug = 'cherry-import';
+
+		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
@@ -65,7 +79,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		public function init() {
 
 			register_importer(
-				'cherry-import',
+				$this->slug,
 				__( 'TemplateMonster Demo Content Import', 'cherry-data-importer' ),
 				__( 'Import demo content for TemplateMonster themes.', 'cherry-data-importer'),
 				array( $this, 'dispatch' )
@@ -93,6 +107,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					'use_upload' => true,
 					'path'       => false,
 				),
+				'success-links' => array(),
 			);
 
 		}
@@ -116,7 +131,9 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				return;
 			}
 
-			foreach ( array( 'xml', 'json' ) as $type ) {
+			$allowed_settings = array_keys( $this->settings );
+
+			foreach ( $allowed_settings as $type ) {
 				if ( ! empty( $settings[ $type ] ) ) {
 					$this->settings[ $type ] = wp_parse_args( $settings[ $type ], $this->settings[ $type ] );
 				}
@@ -203,7 +220,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		private function import_after() {
 
 			cdi()->get_template( 'page-header.php' );
-			cdi()->get_template( 'import-before.php' );
+			cdi()->get_template( 'import-after.php' );
 			cdi()->get_template( 'page-footer.php' );
 
 		}
@@ -274,6 +291,10 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 						'import_end' => true,
 						'complete'   => 100,
 						'processed'  => $processed,
+						'redirect'   => add_query_arg(
+							array( 'import' => $this->slug, 'step' => 3 ),
+							admin_url( 'admin.php' )
+						),
 					);
 
 					break;
@@ -369,23 +390,49 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 */
 		public function get_welcome_message() {
 
-			$path = $this->get_setting( array( 'xml', 'path' ) );
+			$files = $this->get_xml_count();
 
-			if ( ! $path ) {
-				return __( 'Upload XML file with demo content', 'cherry-data-importer' );
+			if ( 0 === $files ) {
+				$message = __( 'Upload XML file with demo content', 'cherry-data-importer' );
 			}
 
-			if ( $path && ! is_array( $path ) ) {
-				return __( 'We found 1 XML file with demo content in your theme, install it?', 'cherry-data-importer' );
+			if ( 1 === $files ) {
+				$message = __( 'We found 1 XML file with demo content in your theme, install it?', 'cherry-data-importer' );
 			}
 
-			if ( is_array( $path ) ) {
-				return sprintf(
-					__( 'We found %s XML files in your theme. Please select one of them', 'cherry-data-importer' ),
-					count( $path )
+			if ( 1 < $files ) {
+				$message = sprintf(
+					__( 'We found %s XML files in your theme. Please select one of them to install', 'cherry-data-importer' ),
+					$files
 				);
 			}
 
+			return '<div class="cdi-message">' . $message . '</div>';
+
+		}
+
+		/**
+		 * Get available XML count
+		 *
+		 * @return int
+		 */
+		public function get_xml_count() {
+
+			if ( null !== $this->xml_count ) {
+				return $this->xml_count;
+			}
+
+			$files = $this->get_setting( array( 'xml', 'path' ) );
+
+			if ( ! $files ) {
+				$this->xml_count = 0;
+			} elseif ( ! is_array( $files ) ) {
+				$this->xml_count = 1;
+			} else {
+				$this->xml_count = count( $files );
+			}
+
+			return $this->xml_count;
 		}
 
 		/**
@@ -436,13 +483,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$result = '<div class="import-file">';
 			$result .= '<input type="hidden" name="upload_file" class="import-file__input">';
 			$result .= '<input type="text" name="upload_file_nicename" class="import-file__placeholder">';
-			$result .= '<button class="cdi-btn" id="cherry-file-upload">';
+			$result .= '<button class="cdi-btn primary" id="cherry-file-upload">';
 			$result .= esc_html__( 'Upload File', 'cherry-data-importer' );
 			$result .= '</button>';
 
 			$result .= '</div>';
 
-			return $result;
+			return $before . $result . $after;
 
 		}
 

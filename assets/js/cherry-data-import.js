@@ -47,13 +47,17 @@
 					CherryDataImport.ajaxRequest( response.data );
 				}
 
-				if ( response.data.complete ) {
+				if ( response.data && response.data.redirect ) {
+					window.location = response.data.redirect;
+				}
+
+				if ( response.data && response.data.complete ) {
 					CherryDataImport.globalProgress
 						.css( 'width', response.data.complete + '%' )
 						.find( '.cdi-progress__label' ).text( response.data.complete + '%' );
 				}
 
-				if ( response.data.processed ) {
+				if ( response.data && response.data.processed ) {
 					$.each( response.data.processed, CherryDataImport.updateSummary );
 				}
 

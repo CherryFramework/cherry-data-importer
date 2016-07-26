@@ -12,24 +12,14 @@
 
 				$( '#cherry-export' ).on( 'click', function( event ) {
 
+					var $this   = $( this ),
+						href    = $this.attr( 'href' ),
+						$loader = $this.next( '.cdi-loader' );
+
 					event.preventDefault();
 
-					$.ajax({
-						url: window.ajaxurl,
-						type: 'get',
-						dataType: 'json',
-						data: {
-							action: 'cherry-data-export',
-							nonce: cherry_ajax,
-						},
-						error: function() {
-							return !1;
-						}
-					}).done( function( response ) {
-						if ( true === response.success ) {
-
-						}
-					});
+					$loader.removeClass( 'cdi-hidden' );
+					window.location = href + '&nonce=' + cherry_ajax;
 
 				});
 

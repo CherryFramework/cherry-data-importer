@@ -86,7 +86,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 		 *
 		 * @return string
 		 */
-		public function do_export() {
+		public function do_export( $into_file = true ) {
 
 			ob_start();
 
@@ -107,16 +107,33 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			$xml = $this->add_extra_data( $xml );
 			$xml = $this->prepare_data( $xml );
 
-			$upload_dir      = wp_upload_dir();
-			$upload_base_dir = $upload_dir['basedir'];
-			$upload_base_url = $upload_dir['baseurl'];
-			$filename        = 'sample-data-' . date( 'm-d-Y' ) . '.xml';
-			$xml_dir         = $upload_base_dir . '/' . $filename;
-			$xml_url         = $upload_base_url . '/' . $filename;
+			if ( true === $into_file ) {
 
-			file_put_contents( $xml_dir, $xml );
+				$upload_dir      = wp_upload_dir();
+				$upload_base_dir = $upload_dir['basedir'];
+				$upload_base_url = $upload_dir['baseurl'];
+				$filename        = $this->get_filename();
+				$xml_dir         = $upload_base_dir . '/' . $filename;
+				$xml_url         = $upload_base_url . '/' . $filename;
 
-			return $xml_url;
+				file_put_contents( $xml_dir, $xml );
+
+				return $xml_url;
+
+			} else {
+				return $xml;
+			}
+
+		}
+
+		/**
+		 * Returns filename for exported sample data
+		 *
+		 * @return void
+		 */
+		public function get_filename() {
+
+			return apply_filters( 'cherry_data_export_filename', 'sample-data-' . date( 'm-d-Y' ) . '.xml' );
 
 		}
 

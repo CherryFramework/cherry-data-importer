@@ -65,14 +65,43 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 
 			require cdi()->path( 'includes/export/class-cherry-wxr-exporter.php' );
 
-			$file = cdi_exporter()->do_export();
+			$xml = cdi_exporter()->do_export( false );
 
-			if ( $file ) {
-				wp_send_json_success( array( 'file' => $file ) );
-			} else {
-				wp_send_json_error( array( 'message' => __( 'Export failed', 'cherry-data-importer' ) ) );
-			}
+			$this->download_headers( cdi_exporter()->get_filename() );
 
+			echo $xml;
+
+			die();
+
+		}
+
+		/**
+		 * Send download headers
+		 *
+		 * @return void
+		 */
+		public function download_headers( $file = 'sample-data.xml' ) {
+
+			session_write_close();
+
+			header( 'Pragma: public' );
+			header( 'Expires: 0' );
+			header( 'Cache-Control: must-revalidate, post-check=0, pre-check=0' );
+			header( 'Cache-Control: public' );
+			header( 'Content-Description: File Transfer' );
+			header( 'Content-type: application/octet-stream' );
+			header( 'Content-Disposition: attachment; filename="' . $file . '"' );
+			header( 'Content-Transfer-Encoding: binary' );
+
+		}
+
+		/**
+		 * Returns URL to generate export file (nonce must be added via JS, otherwise will not be processed)
+		 *
+		 * @return string
+		 */
+		public function get_export_url() {
+			return add_query_arg( array( 'action' => 'cherry-data-export' ), admin_url( 'admin-ajax.php' ) );
 		}
 
 		/**

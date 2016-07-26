@@ -1,8 +1,17 @@
-$primaryColor: #298ffc;
-$inputColor:   #f1f1f1;
-$bordersColor: #e5e5e5;
-$textColor:    #23282d;
-$bodyColor:    #fff;
+$primaryColor:    #298ffc;
+$primaryColorAlt: #206ff4;
+$defaultColor:    #495159;
+$defaultColorAlt: #393f45;
+$successColor:    #48c569;
+$successColorAlt: #3ba956;
+$dangerColor:     #e54343;
+$dangerColorAlt:  #c73434;
+$warningColor:    #faa730;
+$warningColorAlt: #ee8425;
+$inputColor:      #f1f1f1;
+$bordersColor:    #e5e5e5;
+$textColor:       #23282d;
+$bodyColor:       #fff;
 
 .cdi-kit {
 	background: $bodyColor;
@@ -10,6 +19,7 @@ $bodyColor:    #fff;
 	padding: 30px;
 	border: 1px solid $bordersColor;
 	font-size: 14px;
+	max-width: 800px;
 	.page-title {
 		margin: 0;
 		padding: 0 0 30px;
@@ -31,6 +41,16 @@ $bodyColor:    #fff;
 
 }
 
+.cdi-message {
+	padding: 0 0 30px 0;
+}
+
+.cdi-file-select,
+.cdi-file-upload {
+	display: inline-block;
+	vertical-align: middle;
+}
+
 .cdi-btn {
 	display: inline-block;
 	padding: 15px 20px;
@@ -40,22 +60,61 @@ $bodyColor:    #fff;
 	font-weight: bold;
 	border: none;
 	outline: none;
-	background: $primaryColor;
+	background: $defaultColor;
 	color: #fff;
 	cursor: pointer;
 	vertical-align: top;
 	border-radius: 5px;
 	transition: all 200ms linear;
 	text-decoration: none;
-	&:hover {
-		background: darken( $primaryColor, 15% );
+	&:focus,
+	&:active {
+		box-shadow: none;
 		color: #fff;
+	}
+	&:hover {
+		background: $defaultColorAlt;
+		color: #fff;
+	}
+	&.primary {
+		background: $primaryColor;
+		&:hover {
+			background: $primaryColorAlt;
+		}
+	}
+	&.success {
+		background: $successColor;
+		&:hover {
+			background: $successColorAlt;
+		}
+	}
+	&.danger {
+		background: $dangerColor;
+		&:hover {
+			background: $dangerColorAlt;
+		}
+	}
+	&.warning {
+		background: $warningColor;
+		&:hover {
+			background: $warningColorAlt;
+		}
 	}
 	.dashicons,
 	.dashicons-before::before {
-		font-size: 14px;
 		vertical-align: bottom;
+		margin: 0 0 0 -5px;
 	}
+}
+
+.cdi-delimiter {
+	padding: 0 10px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.cdi-actions > * {
+	padding-bottom: 30px;
 }
 
 .cdi-content {
@@ -127,4 +186,109 @@ $bodyColor:    #fff;
 	&__total {
 		color: $primaryColor;
 	}
+}
+
+.import-file {
+	&__placeholder {
+		margin: 0 10px 0 0;
+	}
+}
+
+.cdi-file-select {
+	select {
+		min-width: 190px;
+	}
+}
+
+.cdi-success-mesage {
+	padding: 0 0 30px;
+}
+
+.cdi-success-links {
+	.cdi-btn {
+		margin: 0 10px 0 0;
+	}
+}
+
+.cdi-btn + .cdi-loader {
+	margin: 10px 15px;
+}
+
+.cdi-hidden {
+	display: none !important;
+}
+
+.cdi-loader {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	margin: 0 10px;
+	display: inline-block;
+	position: relative;
+	vertical-align: middle;
+	background-color: $primaryColor;
+	&,
+	&:before,
+	&:after {
+		animation: 1.15s infinite ease-in-out;
+		-o-animation: 1.15s infinite ease-in-out;
+		-ms-animation: 1.15s infinite ease-in-out;
+		-webkit-animation: 1.15s infinite ease-in-out;
+		-moz-animation: 1.15s infinite ease-in-out;
+	}
+	&:before,
+	&:after {
+		width: 100%;
+		height: 100%;
+		border-radius: 50%;
+		position: absolute;
+		top: 0;
+		left: 0;
+		content: "";
+	}
+	&:before {
+		content: "";
+		width: 14px;
+		height: 14px;
+		margin: 0 0 0 -7px;
+		background-color: rgb(255,255,255);
+		top: auto;
+		bottom: 0;
+		left: 50%;
+		transform-origin: 50% 0%;
+		-o-transform-origin: 50% 0%;
+		-ms-transform-origin: 50% 0%;
+		-webkit-transform-origin: 50% 0%;
+		-moz-transform-origin: 50% 0%;
+		animation: cssload-animation 1.15s infinite linear;
+		-o-animation: cssload-animation 1.15s infinite linear;
+		-ms-animation: cssload-animation 1.15s infinite linear;
+		-webkit-animation: cssload-animation 1.15s infinite linear;
+		-moz-animation: cssload-animation 1.15s infinite linear;
+	}
+}
+
+@keyframes cssload-animation {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+}
+
+@-o-keyframes cssload-animation {
+	0% { -o-transform: rotate(0deg); }
+	100% { -o-transform: rotate(360deg); }
+}
+
+@-ms-keyframes cssload-animation {
+	0% { -ms-transform: rotate(0deg); }
+	100% { -ms-transform: rotate(360deg); }
+}
+
+@-webkit-keyframes cssload-animation {
+	0% { -webkit-transform: rotate(0deg); }
+	100% { -webkit-transform: rotate(360deg); }
+}
+
+@-moz-keyframes cssload-animation {
+	0% { -moz-transform: rotate(0deg); }
+	100% { -moz-transform: rotate(360deg); }
 }

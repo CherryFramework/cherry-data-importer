@@ -110,7 +110,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 	 */
 	public function prepare_import() {
 
-		timer_start();
 		$count = 0;
 
 		// Ensure thats no previously stored data prevent us from successfully installation
@@ -130,7 +129,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 		cdi_cache()->update( 'total_count', $count );
 
 		$summary = cdi_cache()->get( 'import_summary' );
-		timer_stop( true, 4 );
 
 	}
 
