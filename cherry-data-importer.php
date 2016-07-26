@@ -221,8 +221,20 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		public function register_assets() {
 
 			wp_register_style( 'cherry-data-import', $this->assets_url( 'css/cherry-data-import.css' ) );
-			wp_register_script( 'cherry-data-import', $this->assets_url( 'js/%s/cherry-data-import.js' ) );
-			wp_register_script( 'cherry-data-export', $this->assets_url( 'js/%s/cherry-data-export.js' ) );
+			wp_register_script(
+				'cherry-data-import',
+				$this->assets_url( 'js/%s/cherry-data-import.js' ),
+				array(),
+				'1.0.0',
+				true
+			);
+			wp_register_script(
+				'cherry-data-export',
+				$this->assets_url( 'js/%s/cherry-data-export.js' ),
+				array(),
+				'1.0.0',
+				true
+			);
 
 			wp_localize_script( 'cherry-data-import', 'CherryDataImportVars', array(
 				'nonce'       => wp_create_nonce( 'cherry-data-import' ),
@@ -243,6 +255,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 
 			if ( ( isset( $_GET['import'] ) && 'cherry-import' === $_GET['import'] ) || 'export.php' === $hook ) {
 				wp_enqueue_style( 'cherry-data-import' );
+				wp_enqueue_media();
 			}
 
 		}
