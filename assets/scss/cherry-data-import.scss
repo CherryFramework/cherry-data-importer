@@ -20,6 +20,12 @@ $bodyColor:       #fff;
 	border: 1px solid $bordersColor;
 	font-size: 14px;
 	max-width: 800px;
+	&:after {
+		clear: both;
+		content: "";
+		width: 100%;
+		display: block;
+	}
 	.page-title {
 		margin: 0;
 		padding: 0 0 30px;
@@ -105,6 +111,17 @@ $bodyColor:       #fff;
 		vertical-align: bottom;
 		margin: 0 0 0 -5px;
 	}
+}
+
+.cdi-wrap {
+	overflow: hidden;
+}
+
+.cdi-logo {
+	float: left;
+	margin: 0 20px 0 0;
+	max-width: 120px;
+	height: auto;
 }
 
 .cdi-delimiter {

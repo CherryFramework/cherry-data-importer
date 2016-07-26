@@ -9,7 +9,7 @@
 	?></div>
 	<div class="cdi-success-links"><?php
 
-		$buttons  = cdi_interface()->get_setting( array( 'success-links' ) );
+		$buttons  = cdi()->get_setting( array( 'success-links' ) );
 		$format   = '<a href="%4$s" class="cdi-btn %2$s" target="%3$s">%1$s</a>';
 		$defaults = array(
 			'label'  => __( 'View your site', 'cherry-data-importer' ),

@@ -42,13 +42,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		private $importer = null;
 
 		/**
-		 * Items number in single chunk
-		 *
-		 * @var integer
-		 */
-		private $chunk_size = 20;
-
-		/**
 		 * Returns XML-files count
 		 *
 		 * @var int
@@ -72,6 +65,24 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		}
 
 		/**
+		 * Returns current chunk size
+		 *
+		 * @return void
+		 */
+		public function chunk_size() {
+
+			$size = cdi()->get_setting( array( 'import', 'chunk_size' ) );
+			$size = intval( $size );
+
+			if ( ! $size ) {
+				return cdi()->chunk_size;
+			} else {
+				return $size;
+			}
+
+		}
+
+		/**
 		 * Init importer
 		 *
 		 * @return void
@@ -84,87 +95,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				__( 'Import demo content for TemplateMonster themes.', 'cherry-data-importer'),
 				array( $this, 'dispatch' )
 			);
-
-			$this->set_default_settings();
-			$this->set_theme_settings();
-		}
-
-		/**
-		 * Set default importer settings
-		 *
-		 * @return void
-		 */
-		public function set_default_settings() {
-
-			$this->settings = array(
-				'xml' => array(
-					'enabled'    => true,
-					'use_upload' => true,
-					'path'       => false,
-				),
-				'json' => array(
-					'enabled'    => true,
-					'use_upload' => true,
-					'path'       => false,
-				),
-				'success-links' => array(),
-			);
-
-		}
-
-		/**
-		 * Maybe rewrite settings from active theme
-		 *
-		 * @return void
-		 */
-		public function set_theme_settings() {
-
-			$manifest = locate_template( 'cherry-import-manifest.php' );
-
-			if ( ! $manifest ) {
-				return;
-			}
-
-			include $manifest;
-
-			if ( ! isset( $settings ) ) {
-				return;
-			}
-
-			$allowed_settings = array_keys( $this->settings );
-
-			foreach ( $allowed_settings as $type ) {
-				if ( ! empty( $settings[ $type ] ) ) {
-					$this->settings[ $type ] = wp_parse_args( $settings[ $type ], $this->settings[ $type ] );
-				}
-			}
-
-		}
-
-		/**
-		 * Get setting by name
-		 *
-		 * @param  array $keys Settings key to get.
-		 * @return void
-		 */
-		public function get_setting( $keys = array() ) {
-
-			if ( empty( $keys ) || ! is_array( $keys ) ) {
-				return false;
-			}
-
-			$temp_result = $this->settings;
-
-			foreach ( $keys as $key ) {
-
-				if ( ! isset( $temp_result[ $key ] ) ) {
-					continue;
-				}
-
-				$temp_result = $temp_result[ $key ];
-			}
-
-			return $temp_result;
 
 		}
 
@@ -239,7 +169,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$importer->prepare_import();
 
 			$count        = cdi_cache()->get( 'total_count' );
-			$chunks_count = ceil( intval( $count ) / $this->chunk_size );
+			$chunks_count = ceil( intval( $count ) / $this->chunk_size() );
 
 			// Adds final step with ID and URL remapping. Sometimes it's expensice step separate it
 			$chunks_count++;
@@ -302,10 +232,10 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				default:
 
 					// Process regular step
-					$offset   = $this->chunk_size * ( $chunk - 1 );
+					$offset   = $this->chunk_size() * ( $chunk - 1 );
 					$importer = $this->get_importer();
 
-					$importer->chunked_import( $this->chunk_size, $offset );
+					$importer->chunked_import( $this->chunk_size(), $offset );
 
 					$data = array(
 						'action'    => 'cherry-data-import-chunk',
@@ -341,7 +271,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			}
 
 			if ( ! $file || ! file_exists( $file ) ) {
-				$file = $this->get_setting( array( 'xml', 'path' ) );
+				$file = cdi()->get_setting( array( 'xml', 'path' ) );
 			}
 
 			if ( is_array( $file ) ) {
@@ -422,7 +352,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				return $this->xml_count;
 			}
 
-			$files = $this->get_setting( array( 'xml', 'path' ) );
+			$files = cdi()->get_setting( array( 'xml', 'path' ) );
 
 			if ( ! $files ) {
 				$this->xml_count = 0;
@@ -442,7 +372,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 */
 		public function get_import_files_select( $before = '<div>', $after = '</div>' ) {
 
-			$files = $this->get_setting( array( 'xml', 'path' ) );
+			$files = cdi()->get_setting( array( 'xml', 'path' ) );
 
 			if ( ! $files && ! is_array( $files ) ) {
 				return;
@@ -476,7 +406,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 */
 		public function get_import_file_input( $before = '<div>', $after = '</div>' ) {
 
-			if ( ! $this->get_setting( array( 'xml', 'use_upload' ) ) ) {
+			if ( ! cdi()->get_setting( array( 'xml', 'use_upload' ) ) ) {
 				return;
 			}
 

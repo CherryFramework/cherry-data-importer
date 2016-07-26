@@ -7,7 +7,7 @@
 	<?php echo cdi_interface()->get_welcome_message(); ?>
 	<div class="cdi-actions">
 		<?php echo cdi_interface()->get_import_files_select( '<div class="cdi-file-select">', '</div>' ); ?>
-		<?php if ( 1 <= cdi_interface()->get_xml_count() && cdi_interface()->get_setting( array( 'xml', 'use_upload' ) ) ) {
+		<?php if ( 1 <= cdi_interface()->get_xml_count() && cdi()->get_setting( array( 'xml', 'use_upload' ) ) ) {
 			echo '<span class="cdi-delimiter">' . __( 'or', 'cherry-data-importer' ) . '</span>';
 		} ?>
 		<?php echo cdi_interface()->get_import_file_input( '<div class="cdi-file-upload">', '</div>' ); ?>

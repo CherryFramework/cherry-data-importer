@@ -67,6 +67,13 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		private $path = null;
 
 		/**
+		 * Items number in single chunk
+		 *
+		 * @var integer
+		 */
+		private $chunk_size = 20;
+
+		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
@@ -75,12 +82,25 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
 			add_filter( 'upload_mimes', array( $this, 'allow_upload_xml' ) );
+			add_action( 'init', array( $this, 'init' ) );
+
+			define( 'CHERRY_DEBUG', true );
+
+		}
+
+		/**
+		 * Init plugin
+		 *
+		 * @return void
+		 */
+		public function init() {
+
+			$this->set_default_settings();
+			$this->set_theme_settings();
 
 			$this->load();
 			$this->load_import();
 			$this->load_export();
-
-			define( 'CHERRY_DEBUG', true );
 
 		}
 
@@ -132,9 +152,104 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 * Load globally required files
 		 */
 		public function load() {
+
 			require $this->path( 'includes/class-cherry-data-importer-cache.php' );
 			require $this->path( 'includes/class-cherry-data-importer-logger.php' );
 			require $this->path( 'includes/class-cherry-data-importer-tools.php' );
+		}
+
+		/**
+		 * Set default importer settings
+		 *
+		 * @return void
+		 */
+		public function set_default_settings() {
+
+			$this->settings = array(
+				'xml' => array(
+					'enabled'    => true,
+					'use_upload' => true,
+					'path'       => false,
+				),
+				'import' => array(
+					'chunk_size' => $this->chunk_size,
+				),
+				'export' => array(
+					'message' => __( 'or export all content with TemplateMonster Data Export tool', 'cherry-data-importer' ),
+					'logo' => cdi()->url( 'assets/img/monster-logo.png' ),
+				),
+				'success-links' => array(
+					'home' => array(
+						'label'  => __( 'View your site', 'cherry-data-importer' ),
+						'type'   => 'primary',
+						'target' => '_self',
+						'url'    => home_url( '/' ),
+					),
+					'customize' => array(
+						'label'  => __( 'Customize your theme', 'cherry-data-importer' ),
+						'type'   => 'default',
+						'target' => '_self',
+						'url'    => admin_url( 'customize.php' ),
+					),
+				),
+			);
+
+		}
+
+		/**
+		 * Maybe rewrite settings from active theme
+		 *
+		 * @return void
+		 */
+		public function set_theme_settings() {
+
+			$manifest = locate_template( 'cherry-import-manifest.php' );
+
+			if ( ! $manifest ) {
+				return;
+			}
+
+			include $manifest;
+
+			if ( ! isset( $settings ) ) {
+				return;
+			}
+
+			$allowed_settings = array_keys( $this->settings );
+
+			foreach ( $allowed_settings as $type ) {
+				if ( ! empty( $settings[ $type ] ) ) {
+					$this->settings[ $type ] = wp_parse_args( $settings[ $type ], $this->settings[ $type ] );
+				}
+			}
+
+		}
+
+		/**
+		 * Get setting by name
+		 *
+		 * @param  array $keys Settings key to get.
+		 * @return void
+		 */
+		public function get_setting( $keys = array() ) {
+
+			if ( empty( $keys ) || ! is_array( $keys ) ) {
+				return false;
+			}
+
+			$temp_result = $this->settings;
+
+			foreach ( $keys as $key ) {
+
+				if ( ! isset( $temp_result[ $key ] ) ) {
+					continue;
+				}
+
+				$temp_result = $temp_result[ $key ];
+			}
+
+			return $temp_result;
+
 		}
 
 		/**
