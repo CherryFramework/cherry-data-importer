@@ -85,7 +85,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		public function get_page_url() {
 			return sprintf(
 				'%1$s://%2$s%3$s',
-				$_SERVER['REQUEST_SCHEME'],
+				is_ssl() ? 'https' : 'http',
 				$_SERVER['HTTP_HOST'],
 				$_SERVER['REQUEST_URI']
 			);
