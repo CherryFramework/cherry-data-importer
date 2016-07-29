@@ -53,7 +53,8 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 			if ( null === $this->export_options ) {
 
-				$theme  = get_option( 'stylesheet' );
+				$theme      = get_option( 'stylesheet' );
+				$theme_name = wp_get_theme();
 
 				$this->export_options = apply_filters( 'cherry_data_export_options', array(
 					'blogname',
@@ -73,6 +74,9 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 					'show_on_front',
 					'page_on_front',
 					'page_for_posts',
+					$theme_name . '_sidebars',
+					$theme_name . '_sidbars',
+
 				) );
 
 			}
@@ -133,7 +137,10 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 		 */
 		public function get_filename() {
 
-			return apply_filters( 'cherry_data_export_filename', 'sample-data-' . date( 'm-d-Y' ) . '.xml' );
+			$date     = date( 'm-d-Y' );
+			$template = get_template();
+
+			return apply_filters( 'cherry_data_export_filename', 'sample-data-' . $template . '-' . $date . '.xml' );
 
 		}
 
