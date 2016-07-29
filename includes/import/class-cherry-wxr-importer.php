@@ -834,6 +834,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			'parent'      => 'wp:term_parent',
 			'name'        => 'wp:term_name',
 			'description' => 'wp:term_description',
+			'meta'        => 'wp:termmeta',
 		);
 		$taxonomy = null;
 
@@ -868,7 +869,15 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 			$key = array_search( $child->tagName, $tag_name );
 			if ( $key ) {
-				$data[ $key ] = $child->textContent;
+				switch ( $key ) {
+					case 'meta':
+						$meta[] = $this->parse_meta_node( $child );
+						break;
+
+					default:
+						$data[ $key ] = $child->textContent;
+						break;
+				}
 			}
 		}
 
@@ -1624,6 +1633,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			$term_id
 		) );
 
+		$this->process_term_meta( $meta, $term_id, $result );
+
 		do_action( 'wp_import_insert_term', $term_id, $data );
 
 		$this->update_processed_summary( 'terms' );
@@ -1635,6 +1646,27 @@ class Cherry_WXR_Importer extends WP_Importer {
 		 * @param array $data Raw data imported for the term.
 		 */
 		do_action( 'wxr_importer.processed.term', $term_id, $data );
+	}
+
+	/**
+	 * Adds meta data to inserted term.
+	 *
+	 * @param  array $meta    Array with meta data.
+	 * @param  int   $term_id Term ID
+	 * @param  array $term    Terma data
+	 * @return voiid
+	 */
+	protected function process_term_meta( $meta, $term_id, $term ) {
+
+		if ( empty( $meta ) ) {
+			return;
+		}
+
+		foreach ( $meta as $meta_item ) {
+			$value = maybe_unserialize( $meta_item['value'] );
+			add_term_meta( $term_id, $meta_item['key'], $meta_item['value'] );
+		}
+
 	}
 
 	/**
