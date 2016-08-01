@@ -121,6 +121,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 				continue;
 			}
 
+			var_dump( $this->reader->name );
+
 			$count = $this->increment( $count );
 			$this->update_summary();
 
