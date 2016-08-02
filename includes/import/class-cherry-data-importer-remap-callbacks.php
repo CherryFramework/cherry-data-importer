@@ -31,10 +31,50 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 * Constructor for the class
 		 */
 		public function __construct() {
+			// Manipulations with posts remap array
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_options' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'postprocess_posts' ) );
+			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_term_thumb' ) );
+
+			// Manipulations with terms remap array
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu_widgets' ) );
+		}
+
+		/**
+		 * Replace term thumbnails IDs with new ones
+		 *
+		 * @param  array $data
+		 * @return void
+		 */
+		public function process_term_thumb( $data ) {
+
+			global $wpdb;
+
+			$query = "
+				SELECT term_id, meta_key, meta_value
+				FROM $wpdb->termmeta
+				WHERE meta_key LIKE '%_thumb'
+			";
+
+			$thumbnails = $wpdb->get_results( $query, ARRAY_A );
+
+			if ( empty( $thumbnails ) ) {
+				return;
+			}
+
+			foreach ( $thumbnails as $thumb_data ) {
+
+				$term_id  = $thumb_data['term_id'];
+				$meta_key = $thumb_data['meta_key'];
+				$current  = $thumb_data['meta_value'];
+
+				if ( ! empty( $data[ $current ] ) ) {
+					update_term_meta( $term_id, $meta_key, $data[ $current ] );
+				}
+
+			}
+
 		}
 
 		/**

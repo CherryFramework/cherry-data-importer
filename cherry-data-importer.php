@@ -176,7 +176,8 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				),
 				'export' => array(
 					'message' => __( 'or export all content with TemplateMonster Data Export tool', 'cherry-data-importer' ),
-					'logo' => cdi()->url( 'assets/img/monster-logo.png' ),
+					'logo'    => $this->url( 'assets/img/monster-logo.png' ),
+					'options' => array(),
 				),
 				'success-links' => array(
 					'home' => array(

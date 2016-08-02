@@ -121,6 +121,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 				continue;
 			}
 
+			var_dump( $this->reader->name );
+
 			$count = $this->increment( $count );
 			$this->update_summary();
 
@@ -834,6 +836,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			'parent'      => 'wp:term_parent',
 			'name'        => 'wp:term_name',
 			'description' => 'wp:term_description',
+			'meta'        => 'wp:termmeta',
 		);
 		$taxonomy = null;
 
@@ -868,7 +871,15 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 			$key = array_search( $child->tagName, $tag_name );
 			if ( $key ) {
-				$data[ $key ] = $child->textContent;
+				switch ( $key ) {
+					case 'meta':
+						$meta[] = $this->parse_meta_node( $child );
+						break;
+
+					default:
+						$data[ $key ] = $child->textContent;
+						break;
+				}
 			}
 		}
 
@@ -914,8 +925,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return;
 		}
 
-		global $wp_registered_sidebars;
-
 		// Hook before import
 		do_action( 'cherry_data_importer_before_widgets_processing' );
 
@@ -946,7 +955,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 			// Check if sidebar is available on this site
 			// Otherwise add widgets to inactive, and say so
-			if ( isset( $wp_registered_sidebars[ $sidebar_id ] ) ) {
+			if ( $sidebar_data = $this->sidebar_exists( $sidebar_id ) ) {
 				$sidebar_available    = true;
 				$use_sidebar_id       = $sidebar_id;
 				$sidebar_message_type = 'success';
@@ -961,7 +970,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			}
 
 			// Result for sidebar
-			$results[ $sidebar_id ]['name'] = ! empty( $wp_registered_sidebars[ $sidebar_id ]['name'] ) ? $wp_registered_sidebars[ $sidebar_id ]['name'] : $sidebar_id; // sidebar name if theme supports it; otherwise ID
+			$results[ $sidebar_id ]['name'] = ! empty( $sidebar_data['name'] ) ? $sidebar_data['name'] : $sidebar_id; // sidebar name if theme supports it; otherwise ID
 			$results[ $sidebar_id ]['message_type'] = $sidebar_message_type;
 			$results[ $sidebar_id ]['message']      = $sidebar_message;
 			$results[ $sidebar_id ]['widgets']      = array();
@@ -1072,7 +1081,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 						'widget_id_num'     => $new_instance_id_number,
 						'widget_id_num_old' => $instance_id_number
 					);
-					do_action( 'wie_after_widget_import', $after_widget_import );
+					do_action( 'cherry_data_widget_after_widget_import', $after_widget_import );
 
 					// Success message
 					if ( $sidebar_available ) {
@@ -1119,7 +1128,36 @@ class Cherry_WXR_Importer extends WP_Importer {
 		do_action( 'cherry_data_importer_after_process_widget' );
 
 		// Return results
-		return apply_filters( 'wie_import_results', $results );
+		return apply_filters( 'cherry_data_widget_import_results', $results );
+
+	}
+
+	/**
+	 * Check if passed sidebar are exists
+	 *
+	 * @return bool
+	 */
+	protected function sidebar_exists( $sidebar ) {
+
+		global $wp_registered_sidebars;
+
+		if ( isset( $wp_registered_sidebars[ $sidebar ] ) ) {
+			return $wp_registered_sidebars[ $sidebar ];
+		}
+
+		$theme_name      = wp_get_theme();
+		$custom_sidebars = get_option( $theme_name . '_sidebars' );
+
+		foreach ( array( $theme_name . '_sidebars', $theme_name . '_sidbars' ) as $option ) {
+
+			$custom_sidebars = get_option( $option );
+
+			if ( is_array( $custom_sidebars ) && ! empty( $custom_sidebars['custom_sidebar'][ $sidebar ] ) ) {
+				return $custom_sidebars['custom_sidebar'][ $sidebar ];
+			}
+		}
+
+		return false;
 
 	}
 
@@ -1624,6 +1662,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			$term_id
 		) );
 
+		$this->process_term_meta( $meta, $term_id, $result );
+
 		do_action( 'wp_import_insert_term', $term_id, $data );
 
 		$this->update_processed_summary( 'terms' );
@@ -1635,6 +1675,27 @@ class Cherry_WXR_Importer extends WP_Importer {
 		 * @param array $data Raw data imported for the term.
 		 */
 		do_action( 'wxr_importer.processed.term', $term_id, $data );
+	}
+
+	/**
+	 * Adds meta data to inserted term.
+	 *
+	 * @param  array $meta    Array with meta data.
+	 * @param  int   $term_id Term ID
+	 * @param  array $term    Terma data
+	 * @return voiid
+	 */
+	protected function process_term_meta( $meta, $term_id, $term ) {
+
+		if ( empty( $meta ) ) {
+			return;
+		}
+
+		foreach ( $meta as $meta_item ) {
+			$value = maybe_unserialize( $meta_item['value'] );
+			add_term_meta( $term_id, $meta_item['key'], $meta_item['value'] );
+		}
+
 	}
 
 	/**

@@ -56,7 +56,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 				$theme      = get_option( 'stylesheet' );
 				$theme_name = wp_get_theme();
 
-				$this->export_options = apply_filters( 'cherry_data_export_options', array(
+				$default_options = apply_filters( 'cherry_data_export_options', array(
 					'blogname',
 					'blogdescription',
 					'users_can_register',
@@ -78,6 +78,14 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 					$theme_name . '_sidbars',
 
 				) );
+
+				$user_options = cdi()->get_setting( array( 'export', 'options' ) );
+
+				if ( ! $user_options || ! is_array( $user_options ) ) {
+					$user_options = array();
+				}
+
+				$this->export_options = array_unique( array_merge( $default_options, $user_options ) );
 
 			}
 

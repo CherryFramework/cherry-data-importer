@@ -43,7 +43,7 @@
 				error: function() {
 				}
 			}).done( function( response ) {
-				if ( true === response.success && ! response.data.import_end ) {
+				/*if ( true === response.success && ! response.data.import_end ) {
 					CherryDataImport.ajaxRequest( response.data );
 				}
 
@@ -59,7 +59,7 @@
 
 				if ( response.data && response.data.processed ) {
 					$.each( response.data.processed, CherryDataImport.updateSummary );
-				}
+				}*/
 
 			});
 
