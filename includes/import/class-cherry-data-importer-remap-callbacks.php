@@ -37,8 +37,44 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_term_thumb' ) );
 
 			// Manipulations with terms remap array
+			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_term_parents' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu_widgets' ) );
+		}
+
+		/**
+		 * Set correctly term parents
+		 *
+		 * @param  array $data Mapped terms data.
+		 * @return void|false
+		 */
+		public function process_term_parents( $data ) {
+
+			$remap_terms         = cdi_cache()->get( 'terms', 'requires_remapping' );
+			$processed_term_slug = cdi_cache()->get( 'term_slug', 'mapping' );
+
+			if ( empty( $remap_terms ) ) {
+				return false;
+			}
+
+			foreach ( $remap_terms as $term_id => $taxonomy ) {
+
+				$parent_slug = get_term_meta( $term_id, '_wxr_import_parent', true );
+
+				if ( ! $parent_slug ) {
+					continue;
+				}
+
+				if ( empty( $processed_term_slug[ $parent_slug ] ) ) {
+					continue;
+				}
+
+				wp_update_term( $term_id, $taxonomy, array(
+					'parent' => (int) $processed_term_slug[ $parent_slug ],
+				) );
+
+			}
+
 		}
 
 		/**

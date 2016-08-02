@@ -43,7 +43,7 @@
 				error: function() {
 				}
 			}).done( function( response ) {
-				/*if ( true === response.success && ! response.data.import_end ) {
+				if ( true === response.success && ! response.data.import_end ) {
 					CherryDataImport.ajaxRequest( response.data );
 				}
 
@@ -59,7 +59,7 @@
 
 				if ( response.data && response.data.processed ) {
 					$.each( response.data.processed, CherryDataImport.updateSummary );
-				}*/
+				}
 
 			});
 
@@ -112,7 +112,10 @@
 		goToImport: function() {
 
 			var url = $('input[name="referrer"]').val();
-			window.location = url + CherryDataImport.prepareImportArgs();
+
+			if ( ! $( this ).hasClass( 'disabled' ) ) {
+				window.location = url + CherryDataImport.prepareImportArgs();
+			}
 
 		},
 
@@ -128,22 +131,22 @@
 						text: CherryDataImportVars.uploadBtn
 					},
 					multiple: false
-				});
+				}),
+				openFrame = function () {
+					uploader.open();
+					return !1;
+				},
+				onFileSelect = function() {
+					var attachment = uploader.state().get( 'selection' ).toJSON(),
+						xmlData    = attachment[0],
+						inputVal   = '';
 
-			$button.on( 'click', function() {
-				uploader.open();
-				return !1;
-			} );
+					$placeholder.val( xmlData.url );
+					CherryDataImport.getFilePath( xmlData.url, $input );
+				};
 
-			uploader.on('select', function() {
-				var attachment = uploader.state().get( 'selection' ).toJSON(),
-					xmlData    = attachment[0],
-					inputVal   = '';
-
-				$placeholder.val( xmlData.url );
-				CherryDataImport.getFilePath( xmlData.url, $input );
-
-			} );
+			$button.on( 'click', openFrame );
+			uploader.on('select', onFileSelect );
 
 		},
 
