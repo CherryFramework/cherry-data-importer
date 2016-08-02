@@ -121,8 +121,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 				continue;
 			}
 
-			var_dump( $this->reader->name );
-
 			$count = $this->increment( $count );
 			$this->update_summary();
 
@@ -1571,15 +1569,23 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return false;
 		}
 
-		$original_id       = isset( $data['id'] )      ? (int) $data['id']      : 0;
-		$parent_id         = isset( $data['parent'] )  ? (int) $data['parent']  : 0;
-		$mapping_key       = sha1( $data['taxonomy'] . ':' . $data['slug'] );
-		$processed_terms   = cdi_cache()->get( 'terms', 'mapping' );
-		$processed_term_id = cdi_cache()->get( 'term_id', 'mapping' );
+		$original_id         = isset( $data['id'] ) ? (int) $data['id'] : 0;
+		$original_slug       = isset( $data['slug'] ) ? esc_attr( $data['slug'] ) : 0;
+		$parent_slug         = isset( $data['parent'] ) ? esc_attr( $data['parent'] ) : 0;
+		$mapping_key         = sha1( $data['taxonomy'] . ':' . $data['slug'] );
+		$processed_terms     = cdi_cache()->get( 'terms', 'mapping' );
+		$processed_term_id   = cdi_cache()->get( 'term_id', 'mapping' );
+		$processed_term_slug = cdi_cache()->get( 'term_slug', 'mapping' );
+		$remap_terms         = cdi_cache()->get( 'terms', 'requires_remapping' );
+
+		if ( empty( $remap_terms ) ) {
+			$remap_terms = array();
+		}
 
 		if ( $existing = $this->term_exists( $data ) ) {
 			$processed_terms[ $mapping_key ]   = $existing;
 			$processed_term_id[ $original_id ] = $existing;
+			$processed_term_slug[ $original_slug ] = $existing;
 
 			$this->update_processed_summary( 'terms' );
 			return false;
@@ -1597,21 +1603,22 @@ class Cherry_WXR_Importer extends WP_Importer {
 			'description' => true,
 		);
 
-		// Map the parent comment, or mark it as one we need to fix
-		// TODO: add parent mapping and remapping
-		/*$requires_remapping = false;
-		if ( $parent_id ) {
-			if ( isset( $this->mapping['term'][ $parent_id ] ) ) {
-				$data['parent'] = $this->mapping['term'][ $parent_id ];
+		// Map the parent term, or mark it as one we need to fix
+		$requires_remapping = false;
+
+		if ( $parent_slug ) {
+
+			if ( isset( $processed_term_slug[ $original_slug ] ) ) {
+				$data['parent'] = $processed_term_slug[ $original_slug ];
 			} else {
 				// Prepare for remapping later
-				$meta[] = array( 'key' => '_wxr_import_parent', 'value' => $parent_id );
+				$meta[] = array( 'key' => '_wxr_import_parent', 'value' => $parent_slug );
 				$requires_remapping = true;
 
 				// Wipe the parent for now
 				$data['parent'] = 0;
 			}
-		}*/
+		}
 
 		foreach ( $data as $key => $value ) {
 			if ( ! isset( $allowed[ $key ] ) ) {
@@ -1645,11 +1652,18 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		$term_id = $result['term_id'];
 
-		$processed_terms[ $mapping_key ]   = $term_id;
-		$processed_term_id[ $original_id ] = $term_id;
+		$processed_terms[ $mapping_key ]       = $term_id;
+		$processed_term_id[ $original_id ]     = $term_id;
+		$processed_term_slug[ $original_slug ] = $term_id;
+
+		if ( true === $requires_remapping ) {
+			$remap_terms[ $term_id ] = $data['taxonomy'];
+		}
 
 		cdi_cache()->update( 'terms', $processed_terms, 'mapping' );
 		cdi_cache()->update( 'term_id', $processed_term_id, 'mapping' );
+		cdi_cache()->update( 'term_slug', $processed_term_slug, 'mapping' );
+		cdi_cache()->update( 'terms', $remap_terms, 'requires_remapping' );
 
 		$this->logger->info( sprintf(
 			__( 'Imported "%s" (%s)', 'wordpress-importer' ),
