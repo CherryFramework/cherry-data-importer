@@ -84,6 +84,10 @@ $bodyColor:       #fff;
 	}
 	&.primary {
 		background: $primaryColor;
+		&.disabled {
+			background: lighten( $primaryColor, 10% );
+			cursor: default;
+		}
 		&:hover {
 			background: $primaryColorAlt;
 		}
