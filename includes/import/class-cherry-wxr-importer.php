@@ -1854,6 +1854,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return true;
 		}
 
+		$remap_meta = cdi_cache()->get( 'posts_meta', 'requires_remapping' );
+
 		$processed_users = cdi_cache()->get( 'users', 'mapping' );
 
 		foreach ( $meta as $meta_item ) {
@@ -1870,6 +1872,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 			$key = apply_filters( 'import_post_meta_key', $meta_item['key'], $post_id, $post );
 			$value = false;
+
+			$remap_meta = $this->maybe_add_remap_item( $key, $remap_meta, $post_id, 'post' );
 
 			if ( '_edit_last' == $key ) {
 				$value = intval( $meta_item['value'] );
@@ -1897,7 +1901,43 @@ class Cherry_WXR_Importer extends WP_Importer {
 			}
 		}
 
+		cdi_cache()->update( 'posts_meta', $remap_meta, 'requires_remapping' );
+
 		return true;
+	}
+
+	/**
+	 * Check if we need to stor this meta for post processing
+	 *
+	 * @param  string $meta_key           Meta key.
+	 * @param  array  $requires_remapping Alreday stored data for remapping.
+	 * @param  int    $post_id            Processed post ID.
+	 * @return array
+	 */
+	protected function maybe_add_remap_item( $meta_key, $requires_remapping, $object_id, $context ) {
+
+		if ( 'term' === $context ) {
+			$search_key = 'term_meta';
+		} else {
+			$search_key = 'post_meta';
+		}
+
+		$remap_meta = cdi()->get_setting( 'remap', $search_key );
+
+		if ( ! $remap_meta || ! is_array( $remap_meta ) ) {
+			return $requires_remapping;
+		}
+
+		if ( array_key_exists( $meta_key, $remap_meta ) ) {
+			if ( isset( $requires_remapping[ $object_id ] ) ) {
+				$requires_remapping[ $object_id ][] = $meta_key;
+			} else {
+				$requires_remapping[ $object_id ] = array( $meta_key );
+			}
+		}
+
+		return $requires_remapping;
+
 	}
 
 	/**
