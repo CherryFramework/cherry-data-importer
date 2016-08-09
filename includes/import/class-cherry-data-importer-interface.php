@@ -312,13 +312,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			do_action( 'cherry_data_import_remap_comments', cdi_cache()->get( 'comments', 'mapping' ) );
 
 			/**
-			 * Attach all terms remapping related callbacks to this hook
-			 *
-			 * @param  array Terms remapping data. Format: old_id => new_id
-			 */
-			do_action( 'cherry_data_import_remap_terms', cdi_cache()->get( 'term_id', 'mapping' ) );
-
-			/**
 			 * Attach all posts_meta remapping related callbacks to this hook
 			 *
 			 * @param  array posts_meta data. Format: new_id => related keys array
