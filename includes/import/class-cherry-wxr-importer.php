@@ -159,6 +159,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				break;
 
 			case 'wp:wp_author':
+			case 'wp:author':
 				$summary['authors']++;
 				break;
 
@@ -247,6 +248,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			case 'wp:base_blog_url':
 			case 'item':
 			case 'wp:wp_author':
+			case 'wp:author':
 			case 'wp:category':
 			case 'wp:tag':
 			case 'wp:term':
@@ -362,6 +364,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 					break;
 
 				case 'wp:wp_author':
+				case 'wp:author':
 
 					$node = $this->reader->expand();
 
