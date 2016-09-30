@@ -28,13 +28,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		private static $instance = null;
 
 		/**
-		 * Holder for admin page title
-		 *
-		 * @var string
-		 */
-		private $page_title = null;
-
-		/**
 		 * Returns available widgets data.
 		 *
 		 * @return array
@@ -60,21 +53,45 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		}
 
 		/**
-		 * Set page title
-		 *
-		 * @param string $title Page title
-		 */
-		public function set_title( $title = null ) {
-			$this->page_title = $title;
-		}
-
-		/**
 		 * Get page title
 		 *
-		 * @return string
+		 * @param  string $before HTML before title.
+		 * @param  string $after  HTML after title.
+		 * @param  bool   $echo   Echo or return.
+		 * @return string|void
 		 */
-		public function get_page_title() {
-			return $this->page_title;
+		public function get_page_title( $before = '', $after = '', $echo = false ) {
+
+			if ( ! isset( cdi()->current_tab ) || empty( cdi()->current_tab ) ) {
+				return;
+			}
+
+			$title = cdi()->current_tab['name'];
+
+			if ( 'import' === cdi()->current_tab['id'] ) {
+
+				$step = ! empty( $_GET['step'] ) ? intval( $_GET['step'] ) : 1;
+
+				switch ( $step ) {
+					case 2:
+						$title = esc_html__( 'Step 2: Importing sample data', 'cherry-data-importer' );
+						break;
+					case 3:
+						$title = esc_html__( 'Import finished', 'cherry-data-importer' );
+						break;
+					default:
+						$title = esc_html__( 'Step 1: Select source to import', 'cherry-data-importer' );
+						break;
+				}
+			}
+
+			$title = $before . apply_filters( 'cherry_data_importer_tab_title', $title ) . $after;
+
+			if ( $echo ) {
+				echo $title;
+			} else {
+				return $title;
+			}
 		}
 
 		/**

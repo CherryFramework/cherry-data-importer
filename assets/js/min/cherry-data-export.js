@@ -1,1 +1,1 @@
-!function(n,r){"use strict";r={globalProgress:null,init:function(){n("#cherry-export").on("click",function(r){var t=n(this),i=t.attr("href");r.preventDefault(),window.location=i+"&nonce="+cherry_ajax})}},r.init()}(jQuery,window.CherryDataExport);
+!function(n,r){"use strict";r={globalProgress:null,init:function(){n("#cherry-export").on("click",function(r){var t=n(this),o=t.attr("href");r.preventDefault(),window.location=o+"&nonce="+window.CherryDataExportVars.nonce})}},r.init()}(jQuery,window.CherryDataExport);

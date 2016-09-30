@@ -105,7 +105,7 @@
 				file = $( 'option:selected', $select ).val();
 			}
 
-			return '&step=2&file=' + file;
+			return '&tab=' + window.CherryDataImportVars.tab + '&step=2&file=' + file;
 
 		},
 
@@ -126,9 +126,9 @@
 				$placeholder = $container.find('.import-file__placeholder'),
 				$input       = $container.find('.import-file__input'),
 				uploader     = wp.media.frames.file_frame = wp.media({
-					title: CherryDataImportVars.uploadTitle,
+					title: window.CherryDataImportVars.uploadTitle,
 					button: {
-						text: CherryDataImportVars.uploadBtn
+						text: window.CherryDataImportVars.uploadBtn
 					},
 					multiple: false
 				}),

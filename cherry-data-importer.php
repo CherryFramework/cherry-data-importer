@@ -74,6 +74,24 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		private $chunk_size = 20;
 
 		/**
+		 * Registered page tabs
+		 * @var array
+		 */
+		private $page_tabs = array();
+
+		/**
+		 * Menu page slug.
+		 * @var string
+		 */
+		public $slug = 'cherry-demo-content';
+
+		/**
+		 * Dispalying tab data
+		 * @var array
+		 */
+		public $current_tab = array();
+
+		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
@@ -83,6 +101,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
 			add_filter( 'upload_mimes', array( $this, 'allow_upload_xml' ) );
 			add_action( 'init', array( $this, 'init' ) );
+			add_action( 'admin_menu', array( $this, 'menu_page' ) );
 
 			define( 'CHERRY_DEBUG', true );
 
@@ -101,6 +120,114 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			$this->load();
 			$this->load_import();
 			$this->load_export();
+
+		}
+
+		/**
+		 * Register menu page
+		 */
+		public function menu_page() {
+
+			add_menu_page(
+				esc_html__( 'Demo Content ', 'cherry-data-importer' ),
+				esc_html__( 'Demo Content ', 'cherry-data-importer' ),
+				'manage_options',
+				$this->slug,
+				array( $this, 'render_plugin_page' ),
+				'dashicons-download',
+				76
+			);
+
+		}
+
+		/**
+		 * Render plugin page html
+		 */
+		public function render_plugin_page() {
+			$this->get_template( 'page-header.php' );
+
+			$tabs = cdi()->get_page_tabs();
+
+			if ( ! $tabs ) {
+				return;
+			}
+
+			$menu           = '';
+			$content        = '';
+			$menu_format    = '<li class="cdi-tabs__item"><a class="cdi-tabs__link%3$s" href="%1$s">%2$s</a></li>';
+			$content_format = '<div class="cdi-tabs_tab">%1$s</div>';
+
+			if ( empty( $_GET['tab'] ) ) {
+				$this->current_tab = $tabs[0];
+				$current_tab_id    = $this->current_tab['id'];
+			} else {
+				$current_tab_id = esc_attr( $_GET['tab'] );
+			}
+
+			foreach ( $tabs as $tab ) {
+
+				$current = '';
+
+				if ( $current_tab_id === $tab['id'] ) {
+
+					$current           = ' current-tab';
+					$this->current_tab = $tab;
+
+					if ( is_callable( $tab['cb'] ) ) {
+						$content = sprintf( $content_format, call_user_func( $tab['cb'] ) );
+					}
+				}
+
+				$menu .= sprintf( $menu_format, $this->get_tab_link( $tab['id'] ), $tab['name'], $current );
+			}
+
+			printf( '<ul class="cdi-tabs__menu">%s</ul>', $menu );
+			printf( '<ul class="cdi-tabs__content">%s</ul>', $content );
+
+			$this->get_template( 'page-footer.php' );
+		}
+
+		/**
+		 * Return page tabs array
+		 *
+		 * @return array
+		 */
+		public function get_page_tabs() {
+			return $this->page_tabs;
+		}
+
+		/**
+		 * Returns current tab URL
+		 *
+		 * @param  string $tab Current tab ID.
+		 * @return string
+		 */
+		public function get_tab_link( $tab = '' ) {
+
+			return add_query_arg(
+				array(
+					'page' => $this->slug,
+					'tab'  => $tab,
+				),
+				esc_url( admin_url( 'admin.php' ) )
+			);
+		}
+
+		/**
+		 * Register new tab for plugin page.
+		 *
+		 * @param  array $tab Tab data to registrate.
+		 * @return void
+		 */
+		public function register_tab( $tab = array() ) {
+
+			$tab = wp_parse_args( $tab, array(
+				'id'   => 'tab',
+				'name' => null,
+				'cb'   => null,
+			) );
+
+			$this->page_tabs[] = $tab;
 
 		}
 
@@ -335,6 +462,11 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				'uploadTitle' => esc_html__( 'Select or upload file with demo content', 'cherry-data-importer' ),
 				'uploadBtn'   => esc_html__( 'Select', 'cherry-data-importer' ),
 				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
+				'tab'         => cdi_interface()->slug,
+			) );
+
+			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(
+				'nonce'       => wp_create_nonce( 'cherry-data-export' ),
 			) );
 
 		}
@@ -346,7 +478,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 */
 		public function enqueue_assets( $hook ) {
 
-			if ( ( isset( $_GET['import'] ) && 'cherry-import' === $_GET['import'] ) || 'export.php' === $hook ) {
+			if ( isset( $_GET['page'] ) && $this->slug === $_GET['page'] ) {
 				wp_enqueue_style( 'cherry-data-import' );
 				wp_enqueue_media();
 			}
@@ -381,7 +513,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 * @return object
 		 */
 		public function exporter() {
-			return $this->importer;
+			return $this->exporter;
 		}
 
 		/**

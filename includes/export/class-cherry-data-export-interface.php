@@ -32,8 +32,26 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 		 */
 		function __construct() {
 
+			add_action( 'admin_menu', array( $this, 'menu_page' ) );
 			add_action( 'export_filters', array( $this, 'render_export_form' ) );
 			add_action( 'wp_ajax_cherry-data-export', array( $this, 'run_export' ) );
+
+		}
+
+		/**
+		 * Init exporter page
+		 *
+		 * @return void
+		 */
+		public function menu_page() {
+
+			cdi()->register_tab(
+				array(
+					'id'   => 'export',
+					'name' => esc_html__( 'Export', 'cherry-data-importer' ),
+					'cb'   => array( $this, 'render_export_form' ),
+				)
+			);
 
 		}
 
@@ -44,7 +62,9 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 		 */
 		public function render_export_form() {
 
+			ob_start();
 			cdi()->get_template( 'export.php' );
+			return ob_get_clean();
 
 		}
 
@@ -59,7 +79,7 @@ if ( ! class_exists( 'Cherry_Data_Export_Interface' ) ) {
 				wp_send_json_error( array( 'message' => 'You don\'t have permissions to do this' ) );
 			}
 
-			if ( empty( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry_ajax_nonce' ) ) {
+			if ( empty( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry-data-export' ) ) {
 				wp_send_json_error( array( 'message' => 'You don\'t have permissions to do this' ) );
 			}
 

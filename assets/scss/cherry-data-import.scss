@@ -9,7 +9,7 @@ $dangerColorAlt:  #c73434;
 $warningColor:    #faa730;
 $warningColorAlt: #ee8425;
 $inputColor:      #f1f1f1;
-$bordersColor:    #e5e5e5;
+$bordersColor:    rgba(0,0,0,0.1);
 $textColor:       #23282d;
 $bodyColor:       #fff;
 
@@ -20,6 +20,8 @@ $bodyColor:       #fff;
 	border: 1px solid $bordersColor;
 	font-size: 14px;
 	max-width: 800px;
+	box-shadow: 0px 5px 21px rgba(0,0,0,0.1);
+	border-radius: 5px;
 	&:after {
 		clear: both;
 		content: "";
@@ -155,6 +157,39 @@ $bodyColor:       #fff;
 		top: 0;
 		bottom: 0;
 		background: $primaryColor;
+		span,
+		&:after {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			background-image:
+			   -webkit-gradient(linear, 0 0, 100% 100%,
+			      color-stop(.25, rgba(255, 255, 255, .05)),
+			      color-stop(.25, transparent), color-stop(.5, transparent),
+			      color-stop(.5, rgba(255, 255, 255, .05)),
+			      color-stop(.75, rgba(255, 255, 255, .05)),
+			      color-stop(.75, transparent), to(transparent)
+			   );
+			background-image:
+				-moz-linear-gradient(
+				  -45deg,
+			      rgba(255, 255, 255, .05) 25%,
+			      transparent 25%,
+			      transparent 50%,
+			      rgba(255, 255, 255, .05) 50%,
+			      rgba(255, 255, 255, .05) 75%,
+			      transparent 75%,
+			      transparent
+			   );
+			z-index: 1;
+			-webkit-background-size: 50px 50px;
+			-moz-background-size: 50px 50px;
+			-webkit-animation: move 2.5s linear infinite;
+			overflow: hidden;
+		}
 	}
 	&__label {
 		content: attr( data-width );
@@ -239,6 +274,67 @@ $bodyColor:       #fff;
 	display: none !important;
 }
 
+.cdi-tabs {
+	&__menu {
+		margin: -30px -30px 30px;
+		border-bottom: 1px solid $bordersColor;
+		&:after {
+			clear: both;
+			content: "";
+			display: block;
+			width: 100%;
+		}
+	}
+	&__item {
+		float: left;
+		margin: 0;
+		&:first-child {
+			.cdi-tabs__link {
+				border-radius: 5px 0 0 0;
+			}
+		}
+	}
+	&__link {
+		padding: 15px 30px;
+		font-weight: bold;
+		font-size: 14px;
+		line-height: 20px;
+		display: block;
+		text-decoration: none;
+		color: $textColor;
+		position: relative;
+		box-shadow: none;
+		&:after {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			height: 5px;
+			content: '';
+			background: $primaryColor;
+			opacity: 0;
+			transition: all 200ms linear;
+		}
+		&:visited {
+			color: $textColor;
+		}
+		&:hover,
+		&:active,
+		&:focus {
+			color: $primaryColor;
+		}
+		&:active,
+		&:focus {
+			box-shadow: 0 0 10px $primaryColor inset;
+		}
+		&:hover:after,
+		&.current-tab:after {
+			background: $primaryColor;
+			opacity: 1;
+		}
+	}
+}
+
 .cdi-loader {
 	width: 28px;
 	height: 28px;
@@ -293,23 +389,33 @@ $bodyColor:       #fff;
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
 }
-
-@-o-keyframes cssload-animation {
-	0% { -o-transform: rotate(0deg); }
-	100% { -o-transform: rotate(360deg); }
-}
-
 @-ms-keyframes cssload-animation {
 	0% { -ms-transform: rotate(0deg); }
 	100% { -ms-transform: rotate(360deg); }
 }
-
 @-webkit-keyframes cssload-animation {
 	0% { -webkit-transform: rotate(0deg); }
 	100% { -webkit-transform: rotate(360deg); }
 }
-
 @-moz-keyframes cssload-animation {
 	0% { -moz-transform: rotate(0deg); }
 	100% { -moz-transform: rotate(360deg); }
+}
+
+
+@-webkit-keyframes move {
+	0% { background-position: 0 0; }
+	100% { background-position: 50px 50px; }
+}
+@-moz-keyframes move {
+	0% { background-position: 0 0; }
+	100% { background-position: 50px 50px; }
+}
+@-ms-keyframes move {
+	0% { background-position: 0 0; }
+	100% { background-position: 50px 50px; }
+}
+@keyframes move {
+	0% { background-position: 0 0; }
+	100% { background-position: 50px 50px; }
 }

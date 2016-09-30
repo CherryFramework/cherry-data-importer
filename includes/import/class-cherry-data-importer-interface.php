@@ -53,13 +53,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 *
 		 * @var string
 		 */
-		public $slug = 'cherry-import';
+		public $slug = 'import';
 
 		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
-			add_action( 'admin_init', array( $this, 'init' ) );
+			add_action( 'admin_menu', array( $this, 'menu_page' ) );
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
 			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
 		}
@@ -87,13 +87,14 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 *
 		 * @return void
 		 */
-		public function init() {
+		public function menu_page() {
 
-			register_importer(
-				$this->slug,
-				__( 'TemplateMonster Demo Content Import', 'cherry-data-importer' ),
-				__( 'Import demo content for TemplateMonster themes.', 'cherry-data-importer'),
-				array( $this, 'dispatch' )
+			cdi()->register_tab(
+				array(
+					'id'   => $this->slug,
+					'name' => esc_html__( 'Import', 'cherry-data-importer' ),
+					'cb'   => array( $this, 'dispatch' ),
+				)
 			);
 
 		}
@@ -107,23 +108,22 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 
 			$step = ! empty( $_GET['step'] ) ? intval( $_GET['step'] ) : 1;
 
+			ob_start();
+			cdi_tools()->get_page_title( '<h2 class="page-title">', '</h2>', true );
+
 			switch ( $step ) {
 				case 2:
-					cdi_tools()->set_title( esc_html__( 'Step 2: Importing sample data', 'cherry-data-importer' ) );
 					$this->import_step();
 					break;
 
 				case 3:
-					cdi_tools()->set_title( esc_html__( 'Import finished', 'cherry-data-importer' ) );
 					$this->import_after();
 					break;
-
 				default:
-					cdi_tools()->set_title( esc_html__( 'Step 1: Select source to import', 'cherry-data-importer' ) );
 					$this->import_before();
 					break;
 			}
-
+			return ob_get_clean();
 
 		}
 
@@ -135,11 +135,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		private function import_before() {
 
 			wp_enqueue_script( 'cherry-data-import' );
-
-			cdi()->get_template( 'page-header.php' );
 			cdi()->get_template( 'import-before.php' );
-			cdi()->get_template( 'page-footer.php' );
-
 		}
 
 		/**
@@ -148,11 +144,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 * @return void
 		 */
 		private function import_after() {
-
-			cdi()->get_template( 'page-header.php' );
 			cdi()->get_template( 'import-after.php' );
-			cdi()->get_template( 'page-footer.php' );
-
 		}
 
 		/**
@@ -164,7 +156,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 
 			wp_enqueue_script( 'cherry-data-import' );
 
-			cdi()->get_template( 'page-header.php' );
 			$importer = $this->get_importer();
 			$importer->prepare_import();
 
@@ -177,7 +168,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			cdi_cache()->update( 'chunks_count', $chunks_count );
 
 			cdi()->get_template( 'import.php' );
-			cdi()->get_template( 'page-footer.php' );
 
 		}
 
@@ -217,14 +207,21 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					// Process last step (remapping and finalizing)
 					$this->remap_all();
 					cdi_cache()->clear_cache();
+
+					$redirect = add_query_arg(
+						array(
+							'page' => cdi()->slug,
+							'tab'  => $this->slug,
+							'step' => 3,
+						),
+						esc_url( admin_url( 'admin.php' ) )
+					);
+
 					$data = array(
 						'import_end' => true,
 						'complete'   => 100,
 						'processed'  => $processed,
-						'redirect'   => add_query_arg(
-							array( 'import' => $this->slug, 'step' => 3 ),
-							admin_url( 'admin.php' )
-						),
+						'redirect'   => $redirect,
 					);
 
 					break;

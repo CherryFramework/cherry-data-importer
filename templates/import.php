@@ -5,7 +5,7 @@
 ?>
 <div class="cdi-content">
 	<div id="cherry-import-progress" class="cdi-progress">
-		<span class="cdi-progress__bar"><span class="cdi-progress__label"></span></span>
+		<span class="cdi-progress__bar"><span class="cdi-progress__label"><span></span></span></span>
 	</div>
 	<table class="cdi-install-summary">
 		<thead>
@@ -20,7 +20,7 @@
 
 			$summary = cdi_cache()->get( 'import_summary' );
 			$labels  = array(
-				'posts'    => esc_html__( 'Post', 'cherry-data-importer' ),
+				'posts'    => esc_html__( 'Posts', 'cherry-data-importer' ),
 				'authors'  => esc_html__( 'Authors', 'cherry-data-importer' ),
 				'comments' => esc_html__( 'Comments', 'cherry-data-importer' ),
 				'media'    => esc_html__( 'Media', 'cherry-data-importer' ),
@@ -45,7 +45,7 @@
 						<span class="cdi-install-summary__percent">0</span>%
 					</td>
 					<td>
-						<div class="cdi-progress progress-tiny"><span class="cdi-progress__bar"></span></div>
+						<div class="cdi-progress progress-tiny"><span class="cdi-progress__bar"><span></span></span></div>
 					</td>
 				</tr>
 				<?php
