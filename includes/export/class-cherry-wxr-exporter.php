@@ -74,6 +74,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 					'show_on_front',
 					'page_on_front',
 					'page_for_posts',
+					'permalink_structure',
 					$theme_name . '_sidebars',
 					$theme_name . '_sidbars',
 

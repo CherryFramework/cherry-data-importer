@@ -207,6 +207,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					// Process last step (remapping and finalizing)
 					$this->remap_all();
 					cdi_cache()->clear_cache();
+					flush_rewrite_rules();
 
 					$redirect = add_query_arg(
 						array(
