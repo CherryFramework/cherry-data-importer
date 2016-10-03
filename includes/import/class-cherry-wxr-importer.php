@@ -1988,6 +1988,20 @@ class Cherry_WXR_Importer extends WP_Importer {
 			case 'custom':
 				// Custom refers to itself, wonderfully easy.
 				$object_id = $post_id;
+				$home_url  = cdi_cache()->get( 'home' );
+
+				foreach ( $meta as $_item ) {
+
+					if ( '_menu_item_url' === $_item['key'] && false !== strpos( $_item['value'], $home_url ) ) {
+						update_post_meta(
+							$post_id,
+							'_menu_item_url',
+							str_replace( $home_url, get_option( 'home' ), $_item['value'] )
+						);
+					}
+
+				}
+
 				break;
 
 			default:
@@ -2034,6 +2048,9 @@ class Cherry_WXR_Importer extends WP_Importer {
 			break;
 		}
 
+		ini_set( 'max_execution_time', 300 );
+		set_time_limit( 0 );
+
 		// if the URL is absolute, but does not contain address, then upload it assuming base_site_url
 		if ( preg_match( '|^/[\w\W]+$|', $remote_url ) ) {
 			$remote_url = rtrim( $this->base_url, '/' ) . $remote_url;
@@ -2062,6 +2079,9 @@ class Cherry_WXR_Importer extends WP_Importer {
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
+
+		ini_set( 'max_execution_time', 300 );
+		set_time_limit( 0 );
 
 		$attachment_metadata = wp_generate_attachment_metadata( $post_id, $upload['file'] );
 		wp_update_attachment_metadata( $post_id, $attachment_metadata );
