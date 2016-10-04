@@ -154,6 +154,18 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 */
 		private function import_step() {
 
+			if ( empty( $_GET['file'] ) || 'null' === $_GET['file'] ) {
+				wp_redirect( add_query_arg(
+					array(
+						'page' => cdi()->slug,
+						'tab'  => $this->slug,
+						'step' => 1,
+					),
+					esc_url( admin_url( 'admin.php' ) )
+				) );
+				die();
+			}
+
 			wp_enqueue_script( 'cherry-data-import' );
 
 			$importer = $this->get_importer();
