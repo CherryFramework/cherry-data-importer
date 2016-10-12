@@ -53,8 +53,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 			if ( null === $this->export_options ) {
 
-				$theme      = get_option( 'stylesheet' );
-				$theme_name = wp_get_theme();
+				$theme = get_option( 'stylesheet' );
 
 				$default_options = apply_filters( 'cherry_data_export_options', array(
 					'blogname',
@@ -75,8 +74,8 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 					'page_on_front',
 					'page_for_posts',
 					'permalink_structure',
-					$theme_name . '_sidebars',
-					$theme_name . '_sidbars',
+					$theme . '_sidebars',
+					$theme . '_sidbars',
 
 				) );
 
