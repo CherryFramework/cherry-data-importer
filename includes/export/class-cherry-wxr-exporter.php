@@ -114,10 +114,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			}
 
 			$xml = ob_get_clean();
-
-			$xml = $this->fix_blog_title( $xml );
 			$xml = $this->add_extra_data( $xml );
-			$xml = $this->prepare_data( $xml );
 
 			if ( true === $into_file ) {
 
@@ -153,39 +150,20 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 		}
 
 		/**
-		 * Rename blog title node in passed XML
-		 *
-		 * @param  string $xml Exported XML.
-		 * @return string
-		 */
-		private function fix_blog_title( $xml ) {
-			$xml = preg_replace( '/<title>(.*?)<\/title>/', '<blog_title>$1</blog_title>', $xml, 1 );
-			return $xml;
-		}
-
-		/**
 		 * Add options and widgets to XML
 		 *
 		 * @param  string $xml Exported XML.
 		 * @return string
 		 */
 		private function add_extra_data( $xml ) {
+
+			ini_set( 'max_execution_time', -1 );
+			ini_set( 'memory_limit', -1 );
+			set_time_limit( 0 );
+
 			$xml = str_replace(
 				"</wp:base_blog_url>", "</wp:base_blog_url>\r\n" . $this->get_options() . $this->get_widgets(), $xml
 			);
-			return $xml;
-		}
-
-		/**
-		 * Prepare exported XML to sending
-		 *
-		 * @param  string $xml Exported XML
-		 * @return string
-		 */
-		private function prepare_data( $xml ) {
-
-			$xml = iconv( 'utf-8', 'utf-8//IGNORE', $xml );
-			$xml = preg_replace( '/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', '', $xml );
 			return $xml;
 		}
 
@@ -209,7 +187,6 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 				}
 
 				if ( ! empty( $option ) ) {
-					//$options .= sprintf( $format, $option, wxr_cdata( $value ) );
 					$value   = wxr_cdata( $value );
 					$options .= "\t\t<wp:{$option}>{$value}</wp:{$option}>\r\n";
 				}

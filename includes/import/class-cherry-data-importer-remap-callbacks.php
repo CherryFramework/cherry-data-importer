@@ -34,7 +34,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			// Manipulations with posts remap array
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_options' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'postprocess_posts' ) );
-			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_term_thumb' ) );
+			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_thumbs' ) );
 
 			// Manipulations with terms remap array
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_term_parents' ) );
@@ -83,30 +83,51 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 * @param  array $data
 		 * @return void
 		 */
-		public function process_term_thumb( $data ) {
+		public function process_thumbs( $data ) {
 
 			global $wpdb;
 
-			$query = "
+			$query_term = "
 				SELECT term_id, meta_key, meta_value
 				FROM $wpdb->termmeta
 				WHERE meta_key LIKE '%_thumb'
 			";
 
-			$thumbnails = $wpdb->get_results( $query, ARRAY_A );
+			$thumb_term = $wpdb->get_results( $query_term, ARRAY_A );
 
-			if ( empty( $thumbnails ) ) {
-				return;
+			$query_post = "
+				SELECT post_id, meta_key, meta_value
+				FROM $wpdb->postmeta
+				WHERE meta_key = '_thumbnail_id'
+			";
+
+			$thumb_post = $wpdb->get_results( $query_post, ARRAY_A );
+
+			if ( empty( $thumb_term ) ) {
+				$thumb_term = array();
 			}
+
+			if ( empty( $thumb_post ) ) {
+				$thumb_post = array();
+			}
+
+			$thumbnails = array_merge( $thumb_term, $thumb_post );
 
 			foreach ( $thumbnails as $thumb_data ) {
 
-				$term_id  = $thumb_data['term_id'];
 				$meta_key = $thumb_data['meta_key'];
 				$current  = $thumb_data['meta_value'];
 
+				if ( '_thumbnail_id' === $meta_key ){
+					$id   = $thumb_data['post_id'];
+					$func = 'update_post_meta';
+				} else {
+					$id   = $thumb_data['term_id'];
+					$func = 'update_term_meta';
+				}
+
 				if ( ! empty( $data[ $current ] ) ) {
-					update_term_meta( $term_id, $meta_key, $data[ $current ] );
+					call_user_func( $func, $id, $meta_key, $data[ $current ] );
 				}
 
 			}

@@ -71,7 +71,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 *
 		 * @var integer
 		 */
-		private $chunk_size = 20;
+		private $chunk_size = 10;
 
 		/**
 		 * Registered page tabs

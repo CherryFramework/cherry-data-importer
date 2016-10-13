@@ -242,7 +242,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 		switch ( $this->reader->name ) {
 			case 'wp:wxr_version':
 			case 'generator':
-			case 'blog_title':
 			case 'blog_description':
 			case 'wp:base_site_url':
 			case 'wp:base_blog_url':
@@ -305,14 +304,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 				case 'generator':
 					cdi_cache()->update( 'generator', $this->reader->readString() );
-
-					$this->next();
-					break;
-
-				case 'blog_title':
-					$title = $this->reader->readString();
-					cdi_cache()->update( 'title', $title );
-					update_option( 'blogname', $title );
 
 					$this->next();
 					break;
