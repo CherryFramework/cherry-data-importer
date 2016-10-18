@@ -61,6 +61,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		function __construct() {
 			add_action( 'admin_menu', array( $this, 'menu_page' ) );
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
+			add_action( 'wp_ajax_cherry-regenerate-thumbnails', array( $this, 'regenerate_chunk' ) );
 			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
 		}
 
@@ -111,20 +112,27 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			ob_start();
 			cdi_tools()->get_page_title( '<h2 class="page-title">', '</h2>', true );
 
+			wp_enqueue_script( 'cherry-data-import' );
+
 			switch ( $step ) {
 				case 2:
 					$this->import_step();
 					break;
 
 				case 3:
+					$this->regenerate_thumbnails();
+					break;
+
+				case 4:
 					$this->import_after();
 					break;
+
 				default:
 					$this->import_before();
 					break;
 			}
-			return ob_get_clean();
 
+			return ob_get_clean();
 		}
 
 		/**
@@ -133,8 +141,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 * @return void
 		 */
 		private function import_before() {
-
-			wp_enqueue_script( 'cherry-data-import' );
 			cdi()->get_template( 'import-before.php' );
 		}
 
@@ -166,8 +172,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				die();
 			}
 
-			wp_enqueue_script( 'cherry-data-import' );
-
 			$importer = $this->get_importer();
 			$importer->prepare_import();
 
@@ -184,11 +188,60 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		}
 
 		/**
-		 * Process single chunk import
+		 * Process regenerate thumbnails step.
 		 *
 		 * @return void
 		 */
-		public function import_chunk() {
+		public function regenerate_thumbnails() {
+
+			$count = wp_count_attachments();
+			$count = (array) $count;
+			$step  = 3;
+
+			$redirect = add_query_arg(
+				array(
+					'page' => cdi()->slug,
+					'tab'  => $this->slug,
+					'step' => 4,
+				),
+				esc_url( admin_url( 'admin.php' ) )
+			);
+
+			if ( empty( $count ) ) {
+				wp_safe_redirect( $redirect );
+				die();
+			}
+
+			$total = 0;
+
+			foreach ( $count as $mime => $num ) {
+				if ( false === strpos( $mime, 'image' ) ) {
+					continue;
+				}
+				$total = $total + (int) $num;
+			}
+
+			if ( 0 === $total ) {
+				wp_safe_redirect( $redirect );
+				die();
+			}
+
+			wp_localize_script( 'cherry-data-import', 'CherryRegenerateData', array(
+				'totalImg'   => $total,
+				'totalSteps' => ceil( $total / $step ),
+				'step'       => $step,
+			) );
+
+			cdi()->get_template( 'regenerate.php' );
+
+		}
+
+		/**
+		 * Validate import-related ajax request.
+		 *
+		 * @return void
+		 */
+		private function validate_request() {
 
 			if ( ! isset( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry-data-import' ) ) {
 				wp_send_json_error( array(
@@ -201,6 +254,89 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					'message' => esc_html__( 'You don\'t have permissions to do this', 'cherry-data-importer' ),
 				) );
 			}
+
+		}
+
+		/**
+		 * Process single regenerate chunk
+		 *
+		 * @return void
+		 */
+		public function regenerate_chunk() {
+
+			$this->validate_request();
+
+			$required = array(
+				'offset',
+				'step',
+				'total',
+			);
+
+			foreach ( $required as $field ) {
+
+				if ( ! isset( $_REQUEST[ $field ] ) ) {
+					wp_send_json_error( array(
+						'message' => sprintf(
+							esc_html__( '%s is missing in request', 'cherry-data-importer' ), $field
+						),
+					) );
+				}
+
+			}
+
+			$offset  = (int) $_REQUEST['offset'];
+			$step    = (int) $_REQUEST['step'];
+			$total   = (int) $_REQUEST['total'];
+			$is_last = ( $total * $step <= $offset + $step ) ? true : false;
+
+			$attachments = get_posts( array(
+				'post_type'   => 'attachment',
+				'numberposts' => $step,
+				'offset'      => $offset,
+			) );
+
+			if ( ! empty( $attachments ) ) {
+				foreach ( $attachments as $attachment ) {
+
+					$id       = $attachment->ID;
+					$file     = get_attached_file( $id );
+					$metadata = wp_generate_attachment_metadata( $id, $file );
+
+					wp_update_attachment_metadata( $id, $metadata );
+				}
+			}
+
+			$data = array(
+				'action'   => 'cherry-regenerate-thumbnails',
+				'offset'   => $offset + $step,
+				'step'     => $step,
+				'total'    => $total,
+				'isLast'   => $is_last,
+				'complete' => round( ( $offset + $step ) * 100 / ( $total * $step ) ),
+			);
+
+			if ( $is_last ) {
+				$data['redirect'] = add_query_arg(
+					array(
+						'page' => cdi()->slug,
+						'tab'  => $this->slug,
+						'step' => 4,
+					),
+					esc_url( admin_url( 'admin.php' ) )
+				);
+			}
+
+			wp_send_json_success( $data );
+		}
+
+		/**
+		 * Process single chunk import
+		 *
+		 * @return void
+		 */
+		public function import_chunk() {
+
+			$this->validate_request();
 
 			if ( empty( $_REQUEST['chunk'] ) ) {
 				wp_send_json_error( array(
@@ -231,10 +367,10 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					);
 
 					$data = array(
-						'import_end' => true,
-						'complete'   => 100,
-						'processed'  => $processed,
-						'redirect'   => $redirect,
+						'isLast'    => true,
+						'complete'  => 100,
+						'processed' => $processed,
+						'redirect'  => $redirect,
 					);
 
 					break;
@@ -454,17 +590,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 */
 		public function get_file_path() {
 
-			if ( ! isset( $_REQUEST['nonce'] ) || ! wp_verify_nonce( $_REQUEST['nonce'], 'cherry-data-import' ) ) {
-				wp_send_json_error( array(
-					'message' => esc_html__( 'You don\'t have permissions to do this', 'cherry-data-importer' ),
-				) );
-			}
-
-			if ( ! current_user_can( 'import' ) ) {
-				wp_send_json_error( array(
-					'message' => esc_html__( 'You don\'t have permissions to do this', 'cherry-data-importer' ),
-				) );
-			}
+			$this->validate_request();
 
 			if ( ! isset( $_REQUEST['file'] ) ) {
 				wp_send_json_error( array(

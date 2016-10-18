@@ -922,7 +922,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		$data = apply_filters( 'cherry_data_importer_widgets_data', $data );
 
-
 		// Get all available widgets site supports
 		$available_widgets = cdi_tools()->available_widgets();
 
@@ -1137,7 +1136,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return $wp_registered_sidebars[ $sidebar ];
 		}
 
-		$theme_name      = wp_get_theme();
+		$theme_name      = get_option( 'stylesheet' );
 		$custom_sidebars = get_option( $theme_name . '_sidebars' );
 
 		foreach ( array( $theme_name . '_sidebars', $theme_name . '_sidbars' ) as $option ) {
@@ -1348,6 +1347,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		// map pre-import ID to local ID
 		$processed_posts[ $original_id ] = (int) $post_id;
+
 		if ( $requires_remapping ) {
 			$remap_posts[ $post_id ] = true;
 			cdi_cache()->update( 'posts', $remap_posts, 'requires_remapping' );
@@ -2048,11 +2048,13 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		$upload = $this->fetch_remote_file( $remote_url, $post );
+
 		if ( is_wp_error( $upload ) ) {
 			return $upload;
 		}
 
 		$info = wp_check_filetype( $upload['file'] );
+
 		if ( ! $info ) {
 			return new WP_Error( 'attachment_processing_error', __( 'Invalid file type', 'cherry-data-importer' ) );
 		}
@@ -2067,6 +2069,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		// as per wp-admin/includes/upload.php
 		$post_id = wp_insert_attachment( $post, $upload['file'] );
+
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
@@ -2074,8 +2077,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 		ini_set( 'max_execution_time', 300 );
 		set_time_limit( 0 );
 
-		$attachment_metadata = wp_generate_attachment_metadata( $post_id, $upload['file'] );
-		wp_update_attachment_metadata( $post_id, $attachment_metadata );
+		//$attachment_metadata = wp_generate_attachment_metadata( $post_id, $upload['file'] );
+		//wp_update_attachment_metadata( $post_id, $attachment_metadata );
 
 		// Map this image URL later if we need to
 		cdi_cache()->update( $remote_url, $upload['url'], 'url_remap' );
@@ -2148,15 +2151,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		$filesize = filesize( $upload['file'] );
-		$headers = wp_remote_retrieve_headers( $response );
-
-		if ( isset( $headers['content-length'] ) && $filesize != $headers['content-length'] ) {
-			@unlink( $upload['file'] );
-			return new WP_Error(
-				'import_file_error',
-				__( 'Remote file is incorrect size', 'cherry-data-importer' )
-			);
-		}
 
 		if ( 0 == $filesize ) {
 			@unlink( $upload['file'] );

@@ -16,12 +16,16 @@
 
 			$( function() {
 
-				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' )
+				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' );
 
 				$( 'body' ).on( 'click', CherryDataImport.selectors.trigger, CherryDataImport.goToImport );
 
 				if ( window.CherryDataImportVars.autorun ) {
 					CherryDataImport.startImport();
+				}
+
+				if ( undefined !== window.CherryRegenerateData ) {
+					CherryDataImport.regenreateThumbnails();
 				}
 
 				CherryDataImport.fileUpload();
@@ -30,7 +34,21 @@
 
 		},
 
+		regenreateThumbnails: function() {
+
+			var data = {
+				action: 'cherry-regenerate-thumbnails',
+				offset: 0,
+				step:   window.CherryRegenerateData.step,
+				total:  window.CherryRegenerateData.totalSteps
+			};
+
+			CherryDataImport.ajaxRequest( data );
+		},
+
 		ajaxRequest: function( data ) {
+
+			var complete;
 
 			data.nonce = window.CherryDataImportVars.nonce;
 			data.file  = window.CherryDataImportVars.file;
@@ -41,9 +59,26 @@
 				dataType: 'json',
 				data: data,
 				error: function() {
+
+					if ( data.step ) {
+
+						complete = Math.ceil( ( data.offset + data.step ) * 100 / ( data.total * data.step ) );
+
+						CherryDataImport.globalProgress
+							.css( 'width', complete + '%' )
+							.find( '.cdi-progress__label' ).text( complete + '%' );
+
+						data.offset = data.offset + data.step;
+
+						CherryDataImport.ajaxRequest( data );
+					} else {
+						$( '#cherry-import-progress' ).replaceWith(
+							'<div class="import-failed">' + window.CherryDataImportVars.error + '</div>'
+						);
+					}
 				}
 			}).done( function( response ) {
-				if ( true === response.success && ! response.data.import_end ) {
+				if ( true === response.success && ! response.data.isLast ) {
 					CherryDataImport.ajaxRequest( response.data );
 				}
 
@@ -52,9 +87,14 @@
 				}
 
 				if ( response.data && response.data.complete ) {
+
 					CherryDataImport.globalProgress
 						.css( 'width', response.data.complete + '%' )
 						.find( '.cdi-progress__label' ).text( response.data.complete + '%' );
+
+
+
+					CherryDataImport.globalProgress.siblings( '.cdi-progress__placeholder' ).remove();
 				}
 
 				if ( response.data && response.data.processed ) {

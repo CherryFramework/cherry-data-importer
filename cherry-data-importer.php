@@ -101,7 +101,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
 			add_filter( 'upload_mimes', array( $this, 'allow_upload_xml' ) );
 			add_action( 'init', array( $this, 'init' ) );
-			add_action( 'admin_menu', array( $this, 'menu_page' ) );
+			add_action( 'admin_menu', array( $this, 'menu_page' ), 30 );
 
 			define( 'CHERRY_DEBUG', true );
 
@@ -137,6 +137,25 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				'dashicons-download',
 				76
 			);
+
+			foreach ( $this->get_page_tabs() as $tab ) {
+
+				if ( empty( $tab['id'] ) || empty( $tab['name'] ) ) {
+					continue;
+				}
+
+				add_submenu_page(
+					$this->slug,
+					esc_html__( 'Demo Content ', 'cherry-data-importer' ),
+					$tab['name'],
+					'manage_options',
+					sprintf( '%1$s&tab=%2$s', $this->slug, $tab['id'] ),
+					array( $this, 'render_plugin_page' )
+				);
+
+			}
+
+			remove_submenu_page( $this->slug, $this->slug );
 
 		}
 
@@ -463,6 +482,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				'uploadBtn'   => esc_html__( 'Select', 'cherry-data-importer' ),
 				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
 				'tab'         => cdi_interface()->slug,
+				'error'       => esc_html__( 'Data processing error, please try again!', 'cherry-data-importer' ),
 			) );
 
 			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(

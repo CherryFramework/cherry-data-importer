@@ -151,6 +151,19 @@ $bodyColor:       #fff;
 	position: relative;
 	overflow: hidden;
 	min-width: 150px;
+	&__placeholder {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		right: 0;
+		line-height: 24px;
+		text-align: center;
+		color: $textColor;
+		font-style: italic;
+		opacity: .5;
+		font-size: 13px;
+	}
 	&__bar {
 		position: absolute;
 		left: 0;
@@ -383,6 +396,12 @@ $bodyColor:       #fff;
 		-webkit-animation: cssload-animation 1.15s infinite linear;
 		-moz-animation: cssload-animation 1.15s infinite linear;
 	}
+}
+
+.import-failed {
+	color: red;
+	font-weight: bold;
+	text-align: center;
 }
 
 @keyframes cssload-animation {
