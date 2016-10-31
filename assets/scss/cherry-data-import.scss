@@ -46,7 +46,17 @@ $bodyColor:       #fff;
 			box-shadow: none;
 		}
 	}
+}
 
+.cdi-server-messages {
+	background: rgba( red( $dangerColor ), green( $dangerColor ), blue( $dangerColor ), .1 );
+	padding: 20px;
+	margin: 0 0 30px;
+	color: $dangerColor;
+	&__heading {
+		padding: 0 0 15px;
+		font-weight: bold;
+	}
 }
 
 .cdi-message {

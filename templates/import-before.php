@@ -4,6 +4,14 @@
  */
 ?>
 <div>
+	<?php
+		/**
+		 * Hook before importer messages output.
+		 *
+		 * @hooked Cherry_Data_Importer_Interface::check_server_params - 10;
+		 */
+		do_action( 'cherry_data_importer_before_messages' );
+	?>
 	<?php echo cdi_interface()->get_welcome_message(); ?>
 	<div class="cdi-actions">
 		<?php echo cdi_interface()->get_import_files_select( '<div class="cdi-file-select">', '</div>' ); ?>

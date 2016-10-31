@@ -112,6 +112,41 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		}
 
 		/**
+		 * Get recommended server params
+		 *
+		 * @return array
+		 */
+		public function server_params() {
+
+			return apply_filters(
+				'cherry_data_importer_recommended_params',
+				array(
+					'memory_limit'        => array(
+						'value' => 128,
+						'units' => 'Mb',
+					),
+					'post_max_size'       => array(
+						'value' => 8,
+						'units' => 'Mb',
+					),
+					'upload_max_filesize' => array(
+						'value' => 8,
+						'units' => 'Mb',
+					),
+					'max_input_time'      => array(
+						'value' => 45,
+						'units' => 's',
+					),
+					'max_execution_time'  => array(
+						'value' => 30,
+						'units' => 's',
+					),
+				)
+			);
+
+		}
+
+		/**
 		 * Escape unsecure for public usage part of file path and return base64 encoded result.
 		 *
 		 * @param  string $file Full file path

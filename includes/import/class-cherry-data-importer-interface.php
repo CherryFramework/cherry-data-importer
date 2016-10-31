@@ -63,6 +63,43 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
 			add_action( 'wp_ajax_cherry-regenerate-thumbnails', array( $this, 'regenerate_chunk' ) );
 			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
+			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
+		}
+
+		/**
+		 * Check server params and show warning message if some of them don't meet requirements
+		 *
+		 * @return void
+		 */
+		public function check_server_params() {
+
+			$messages = '';
+			$format   = esc_html__( '%1$s: %2$s required, yours - %3$s', 'cherry-data-importer' );
+
+			foreach ( cdi_tools()->server_params() as $param => $data ) {
+				$val = ini_get( $param );
+				$val = (int) $val;
+
+				if ( $val < $data['value'] ) {
+					$current = sprintf(
+						$format,
+						$param,
+						'<strong>' . $data['value'] . $data['units'] . '</strong>',
+						'<strong>' . $val . $data['units'] . '</strong>'
+					);
+
+					$messages .= '<div>' . $current . '</div>';
+				}
+
+			}
+
+			if ( empty( $messages ) ) {
+				return;
+			}
+
+			$heading = '<div class="cdi-server-messages__heading">' . esc_html__( 'Some parameters from your server don\'t meet the requirements:' ) . '</div>';
+
+			echo '<div class="cdi-server-messages">' . $heading . $messages . '</div>';
 		}
 
 		/**
