@@ -28,6 +28,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		private static $instance = null;
 
 		/**
+		 * Holder for terms data
+		 *
+		 * @var array
+		 */
+		public $terms = array();
+
+		/**
 		 * Constructor for the class
 		 */
 		public function __construct() {
@@ -40,6 +47,85 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_term_parents' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu_widgets' ) );
+			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_home_page' ) );
+		}
+
+		/**
+		 * Remap IDs in home page content
+		 *
+		 * @param  array $data Mapped terms data.
+		 * @return void|false
+		 */
+		public function process_home_page( $data ) {
+
+			$regex = apply_filters( 'cherry_data_import_home_regex_replace', array() );
+
+			if ( empty( $regex ) ) {
+				return false;
+			}
+
+			$home_id = get_option( 'page_on_front' );
+
+			if ( ! $home_id ) {
+				return false;
+			}
+
+			$home = get_post( $home_id );
+
+			$this->terms = $data;
+			$regex       = array_map( array( $this, 'prepare_regex' ), $regex );
+
+			$content = preg_replace_callback( $regex, array( $this, 'replace_ids' ), $home->post_content );
+
+			$new_home = array(
+				'ID'           => $home_id,
+				'post_content' => $content,
+			);
+
+			wp_update_post( $new_home );
+		}
+
+		/**
+		 * Replace ids in shortcodes
+		 *
+		 * @return string
+		 */
+		public function replace_ids( $matches ) {
+
+			if ( ! isset( $matches[1] ) || ! isset( $matches[2] ) ) {
+				return $matches[0];
+			}
+
+			$ids     = str_replace( ' ', '', $matches[2] );
+			$ids     = explode( ',', $ids );
+			$new_ids = array();
+
+			foreach ( $ids as $id ) {
+
+				if ( isset( $this->terms[ $id ] ) ) {
+					$new_ids[] = $this->terms[ $id ];
+				} else {
+					$new_ids[] = $id;
+				}
+
+			}
+
+			$new_ids = implode( ',', $new_ids );
+			$return  = sprintf( '%1$s="%2$s"', $matches[1], $new_ids );
+
+			return $return;
+		}
+
+		/**
+		 * Callback for regex map
+		 *
+		 * @param  array $item Regex item.
+		 * @return string
+		 */
+		public function prepare_regex( $item ) {
+
+			return '/(\[' . $item['shortcode'] . '[^\]]*' . $item['attr'] . ')="([0-9\,]*)"/';
+
 		}
 
 		/**
