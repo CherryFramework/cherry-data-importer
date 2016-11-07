@@ -64,25 +64,56 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 				return false;
 			}
 
+			$pages = apply_filters( 'cherry_data_import_add_pages_to_replace', array() );
+
+			if ( ! empty( $pages ) ) {
+				$pages = array_map( array( $this, 'get_page_ids' ), $pages );
+			}
+
 			$home_id = get_option( 'page_on_front' );
 
-			if ( ! $home_id ) {
+			$pages = array_merge( array( $home_id ), $pages );
+			$pages = array_filter( $pages );
+
+			if ( ! $pages ) {
 				return false;
 			}
 
-			$home = get_post( $home_id );
+			$regex = array_map( array( $this, 'prepare_regex' ), $regex );
 
-			$this->terms = $data;
-			$regex       = array_map( array( $this, 'prepare_regex' ), $regex );
+			foreach ( $pages as $page_id ) {
 
-			$content = preg_replace_callback( $regex, array( $this, 'replace_ids' ), $home->post_content );
+				$page = get_post( $page_id );
 
-			$new_home = array(
-				'ID'           => $home_id,
-				'post_content' => $content,
-			);
+				$this->terms = $data;
 
-			wp_update_post( $new_home );
+				$content = preg_replace_callback( $regex, array( $this, 'replace_ids' ), $page->post_content );
+
+				$new_page = array(
+					'ID'           => $page_id,
+					'post_content' => $content,
+				);
+
+				wp_update_post( $new_page );
+
+			}
+		}
+
+		/**
+		 * Get page ids by slug
+		 *
+		 * @return int|bool
+		 */
+		public function get_page_ids( $slug ) {
+
+			$page = get_page_by_path( $slug );
+			if ( $page ) {
+				return $page->ID;
+			} else {
+				return false;
+			}
+
+			return get_page_by_path( $slug );
 		}
 
 		/**
