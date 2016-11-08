@@ -234,21 +234,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$count = wp_count_attachments();
 			$count = (array) $count;
 			$step  = 3;
-
-			$redirect = add_query_arg(
-				array(
-					'page' => cdi()->slug,
-					'tab'  => $this->slug,
-					'step' => 4,
-				),
-				esc_url( admin_url( 'admin.php' ) )
-			);
-
-			if ( empty( $count ) ) {
-				wp_safe_redirect( $redirect );
-				die();
-			}
-
 			$total = 0;
 
 			foreach ( $count as $mime => $num ) {
@@ -256,11 +241,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					continue;
 				}
 				$total = $total + (int) $num;
-			}
-
-			if ( 0 === $total ) {
-				wp_safe_redirect( $redirect );
-				die();
 			}
 
 			wp_localize_script( 'cherry-data-import', 'CherryRegenerateData', array(
@@ -271,6 +251,27 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 
 			cdi()->get_template( 'regenerate.php' );
 
+		}
+
+		/**
+		 * Returns true if regenerate thumbnails step is required, false - if not.
+		 *
+		 * @return boolean
+		 */
+		private function is_regenerate_required() {
+
+			$count = wp_count_attachments();
+			$count = (array) $count;
+
+			if ( empty( $count ) ) {
+				return false;
+			}
+
+			if ( 0 === $total ) {
+				return false;
+			}
+
+			return true;
 		}
 
 		/**
@@ -398,7 +399,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 						array(
 							'page' => cdi()->slug,
 							'tab'  => $this->slug,
-							'step' => 3,
+							'step' => $this->is_regenerate_required() ? 3 : 4,
 						),
 						esc_url( admin_url( 'admin.php' ) )
 					);
