@@ -11,7 +11,8 @@ $settings = array(
 		'path'       => false,
 	),
 	'import' => array(
-		'chunk_size' => $this->chunk_size,
+		'chunk_size'            => $this->chunk_size,
+		'regenerate_chunk_size' => 3,
 	),
 	'remap' => array(
 		'post_meta' => array(),

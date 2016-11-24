@@ -233,7 +233,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 
 			$count = wp_count_attachments();
 			$count = (array) $count;
-			$step  = 3;
+			$step  = cdi()->get_setting( array( 'import', 'regenerate_chunk_size' ) );
 			$total = 0;
 
 			foreach ( $count as $mime => $num ) {
