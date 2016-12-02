@@ -5,7 +5,7 @@ Plugin URI: http://www.templatemonster.com/wordpress-themes.php
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: TemplateMonster
 Author URI: http://www.templatemonster.com/wordpress-themes.php
-Version: 1.0.0
+Version: 1.1.0
 Text Domain: cherry-data-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */

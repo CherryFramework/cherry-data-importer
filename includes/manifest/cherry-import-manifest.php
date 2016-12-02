@@ -10,6 +10,7 @@ $settings = array(
 		'use_upload' => true,
 		'path'       => false,
 	),
+	'advanced_import' => false,
 	'import' => array(
 		'chunk_size'            => $this->chunk_size,
 		'regenerate_chunk_size' => 3,
@@ -38,4 +39,18 @@ $settings = array(
 			'url'    => admin_url( 'customize.php' ),
 		),
 	),
+	/*
+	'advanced_import' => array(
+		'default' => array(
+			'full'    => get_template_directory() . '/assets/demo-content/default/default-full.xml',
+			'min'     => get_template_directory() . '/assets/demo-content/default/default-min.xml',
+			'thumb'   => get_template_directory_uri() . '/assets/demo-content/default/default-thumb.png',
+			'plugins' => array(
+				'booked-appointments' => 'Booked Appointments',
+				'buddypress'          => 'BuddyPress',
+				'cherry-projects'     => 'Cherry Projects'
+			),
+		),
+	),
+	 */
 );

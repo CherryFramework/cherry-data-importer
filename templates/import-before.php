@@ -13,6 +13,9 @@
 		do_action( 'cherry_data_importer_before_messages' );
 	?>
 	<?php echo cdi_interface()->get_welcome_message(); ?>
+	<?php if ( cdi_interface()->is_advanced_import() ) : ?>
+		<?php cdi_interface()->advanced_import(); ?>
+	<?php else : ?>
 	<div class="cdi-actions">
 		<?php echo cdi_interface()->get_import_files_select( '<div class="cdi-file-select">', '</div>' ); ?>
 		<?php if ( 1 <= cdi_interface()->get_xml_count() && cdi()->get_setting( array( 'xml', 'use_upload' ) ) ) {
@@ -25,4 +28,5 @@
 		<span class="dashicons dashicons-download"></span>
 		<?php esc_html_e( 'Start import', 'cherry-data-importer' ); ?>
 	</button>
+	<?php endif; ?>
 </div>

@@ -414,6 +414,49 @@ $bodyColor:       #fff;
 	text-align: center;
 }
 
+.advanced-item {
+	display: flex;
+	padding: 0 0 50px;
+	&__thumb {
+		width: 40%;
+		padding: 0 20px 0 0;
+		img {
+			width: 100%;
+			display: block;
+		}
+	}
+	&__title {
+		margin: 0 0 15px;
+	}
+	&__content {
+		width: 60%;
+	}
+	&__recommended-plugins {
+		padding: 0 0 5px;
+	}
+	&__plugin {
+		display: inline-block;
+		padding: 3px 5px;
+		color: $primaryColor;
+		border: 1px solid currentColor;
+		border-radius: 2px;
+		margin: 0 3px 3px 0;
+		&.is-inactive {
+			color: $dangerColor;
+		}
+	}
+	&__install-type {
+		margin: 0 0 15px;
+	}
+	&__type-checkbox {
+		display: block;
+		margin: 0 0 5px;
+	}
+	&__plugins-list {
+		padding: 0 0 15px;
+	}
+}
+
 @keyframes cssload-animation {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }

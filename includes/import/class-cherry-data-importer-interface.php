@@ -56,6 +56,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		public $slug = 'import';
 
 		/**
+		 * Data storage.
+		 *
+		 * @var array
+		 */
+		public $data = array();
+
+		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
@@ -618,6 +625,39 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$result .= '</div>';
 
 			return $before . $result . $after;
+
+		}
+
+		/**
+		 * Check if advanced import is allowed
+		 *
+		 * @since  1.1.0
+		 * @return boolean
+		 */
+		public function is_advanced_import() {
+			$advanced = cdi()->get_setting( array( 'advanced_import' ) );
+			return ! empty( $advanced );
+		}
+
+		/**
+		 * Show advanced import block.
+		 *
+		 * @since  1.1.0
+		 * @return null
+		 */
+		public function advanced_import() {
+
+			if ( ! $this->is_advanced_import() ) {
+				return;
+			}
+
+			$advanced = cdi()->get_setting( array( 'advanced_import' ) );
+
+			foreach ( $advanced as $slug => $item ) {
+				$this->data['advanced-item'] = $item;
+				$this->data['advanced-slug'] = $slug;
+				cdi()->get_template( 'import-advanced.php' );
+			}
 
 		}
 
