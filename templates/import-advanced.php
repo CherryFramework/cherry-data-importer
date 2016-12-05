@@ -9,12 +9,18 @@ if ( ! $item || ! $slug ) {
 	return;
 }
 
-$thumb    = ! empty( $item['thumb'] ) ? esc_url( $item['thumb'] ) : false;
-$label    = ! empty( $item['label'] ) ? $item['label'] : false;
+$thumb    = ! empty( $item['thumb'] )    ? esc_url( $item['thumb'] )    : false;
+$label    = ! empty( $item['label'] )    ? $item['label']               : false;
 $demo_url = ! empty( $item['demo_url'] ) ? esc_url( $item['demo_url'] ) : false;
-$plugins  = ! empty( $item['plugins'] ) ? $item['plugins'] : false;
+$plugins  = ! empty( $item['plugins'] )  ? $item['plugins']             : false;
+$xml_full = ! empty( $item['full'] )     ? $item['full']                : false;
+$xml_min  = ! empty( $item['min'] )      ? $item['min']                 : false;
+
+$full_path = cdi_tools()->secure_path( $xml_full );
+$min_path  = cdi_tools()->secure_path( $xml_min );
+
 ?>
-<div class="advanced-item">
+<div class="advanced-item" data-full="<?php echo $full_path; ?>" data-min="<?php echo $min_path; ?>">
 	<div class="advanced-item__thumb">
 		<?php
 			if ( $thumb ) {
@@ -46,10 +52,10 @@ $plugins  = ! empty( $item['plugins'] ) ? $item['plugins'] : false;
 			<?php esc_html_e( 'Please select this option to install light version of demo content. Recommended for slow severs and shared web hosts', 'cherry-data-importer' ); ?>
 		</div>
 		<div class="advanced-item__install">
-			<button class="cdi-btn primary"><?php
+			<button class="cdi-btn primary" data-action="start-install"><span class="text"><?php
 				esc_html_e( 'Install Demo', 'cherry-data-importer' );
-			?></button>
-			<a href="<?php echo $demo_url; ?>" class="cdi-btn"><?php
+			?></span><span class="cdi-loader-wrapper-alt"><span class="cdi-loader-alt"></span></span></button>
+			<a href="<?php echo $demo_url; ?>" target="_blank" class="cdi-btn"><?php
 				esc_html_e( 'View Demo', 'cherry-data-importer' );
 			?></a>
 		</div>

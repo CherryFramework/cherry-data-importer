@@ -71,6 +71,23 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-regenerate-thumbnails', array( $this, 'regenerate_chunk' ) );
 			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
+			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
+		}
+
+		/**
+		 * PopUp installation
+		 */
+		public function advanced_popup() {
+
+			if ( ! $this->is_advanced_import() ) {
+				return;
+			}
+
+			if ( ! isset( $_GET['tab'] ) || 'import' !== $_GET['tab'] ) {
+				return;
+			}
+
+			cdi()->get_template( 'advanced-popup.php' );
 		}
 
 		/**

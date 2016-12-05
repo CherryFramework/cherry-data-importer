@@ -483,6 +483,10 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
 				'tab'         => cdi_interface()->slug,
 				'error'       => esc_html__( 'Data processing error, please try again!', 'cherry-data-importer' ),
+				'advURLMask'  => add_query_arg(
+					array( 'page' => $this->slug, 'tab' => 'import', 'step' => 2, 'file' => '<-file->' ),
+					admin_url( 'admin.php' )
+				)
 			) );
 
 			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(

@@ -6,6 +6,8 @@
 
 		selectors: {
 			trigger: '#cherry-import-start',
+			advancedTrigger: 'button[data-action="start-install"]',
+			popupTrigger: 'button[data-action="confirm-install"]',
 			upload: '#cherry-file-upload',
 			globalProgress: '#cherry-import-progress'
 		},
@@ -19,13 +21,17 @@
 				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' );
 
 				$( 'body' ).on( 'click', CherryDataImport.selectors.trigger, CherryDataImport.goToImport );
+				$( 'body' ).on( 'click', CherryDataImport.selectors.advancedTrigger, CherryDataImport.advancedImport );
+				$( 'body' ).on( 'click', CherryDataImport.selectors.popupTrigger, CherryDataImport.confirmImport );
+				$( 'body' ).on( 'change', 'input[name="install-type"]', CherryDataImport.advancedNotice );
+				$( 'body' ).on( 'click', '.cdi-advanced-popup__close', CherryDataImport.closePopup );
 
 				if ( window.CherryDataImportVars.autorun ) {
 					CherryDataImport.startImport();
 				}
 
 				if ( undefined !== window.CherryRegenerateData ) {
-					CherryDataImport.regenreateThumbnails();
+					CherryDataImport.regenerateThumbnails();
 				}
 
 				CherryDataImport.fileUpload();
@@ -34,7 +40,68 @@
 
 		},
 
-		regenreateThumbnails: function() {
+		closePopup: function() {
+			$( '.cdi-advanced-popup' ).addClass( 'popup-hidden' ).data( 'url', null );
+			$( '.cdi-btn.in-progress' ).removeClass( 'in-progress' );
+		},
+
+		confirmImport: function() {
+			var $this     = $( this ),
+				$popup    = $this.closest( '.cdi-advanced-popup' ),
+				$checkbox = $( '.cdi-advanced-popup__item input[type="radio"]:checked', $popup ),
+				type      = 'append',
+				url       = $popup.data( 'url' );
+
+			$this.addClass( 'in-progress' );
+
+			console.log( $checkbox );
+
+			if ( undefined !== $checkbox.val() && '' !== $checkbox.val() ) {
+				type = $checkbox.val();
+			}
+
+			url = url + '&type=' + type;
+			console.log( url );
+
+		},
+
+		advancedImport: function() {
+
+			var $this = $( this ),
+				$item = $this.closest( '.advanced-item' ),
+				$type = $( '.advanced-item__type-checkbox input[type="checkbox"]', $item ),
+				url   = window.CherryDataImportVars.advURLMask,
+				full  = $item.data( 'full' ),
+				min   = $item.data( 'min' );
+
+			$this.addClass( 'in-progress' );
+
+			if ( $type.is(':checked') ) {
+				url = url.replace( '<-file->', min );
+			} else {
+				url = url.replace( '<-file->', full );
+			}
+
+			$( '.cdi-advanced-popup' ).removeClass( 'popup-hidden' ).data( 'url', url );
+
+			//window.location = url;
+
+		},
+
+		advancedNotice: function() {
+			var $this   = $( this ),
+				$popup  = $this.closest( '.cdi-advanced-popup__content' ),
+				$notice = $( '.cdi-advanced-popup__warning', $popup );
+
+			if ( $this.is( ':checked' ) && 'replace' === $this.val() ) {
+				$notice.removeClass( 'cdi-hide' );
+			} else if ( ! $notice.hasClass( 'cdi-hide' ) ) {
+				$notice.addClass( 'cdi-hide' );
+			}
+
+		},
+
+		regenerateThumbnails: function() {
 
 			var data = {
 				action: 'cherry-regenerate-thumbnails',
