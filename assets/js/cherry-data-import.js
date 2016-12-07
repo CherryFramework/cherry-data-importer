@@ -8,6 +8,7 @@
 			trigger: '#cherry-import-start',
 			advancedTrigger: 'button[data-action="start-install"]',
 			popupTrigger: 'button[data-action="confirm-install"]',
+			removeContent: 'button[data-action="remove-content"]',
 			upload: '#cherry-file-upload',
 			globalProgress: '#cherry-import-progress'
 		},
@@ -20,11 +21,13 @@
 
 				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' );
 
-				$( 'body' ).on( 'click', CherryDataImport.selectors.trigger, CherryDataImport.goToImport );
-				$( 'body' ).on( 'click', CherryDataImport.selectors.advancedTrigger, CherryDataImport.advancedImport );
-				$( 'body' ).on( 'click', CherryDataImport.selectors.popupTrigger, CherryDataImport.confirmImport );
-				$( 'body' ).on( 'change', 'input[name="install-type"]', CherryDataImport.advancedNotice );
-				$( 'body' ).on( 'click', '.cdi-advanced-popup__close', CherryDataImport.closePopup );
+				$( 'body' ).on( 'click.cdiImport', CherryDataImport.selectors.trigger, CherryDataImport.goToImport )
+				.on( 'click.cdiImport', CherryDataImport.selectors.advancedTrigger, CherryDataImport.advancedImport )
+				.on( 'click.cdiImport', CherryDataImport.selectors.popupTrigger, CherryDataImport.confirmImport )
+				.on( 'click.cdiImport', CherryDataImport.selectors.removeContent, CherryDataImport.removeContent )
+				.on( 'focus.cdiImport', '.cdi-remove-form__input', CherryDataImport.clearRemoveNotices )
+				.on( 'change.cdiImport', 'input[name="install-type"]', CherryDataImport.advancedNotice )
+				.on( 'click.cdiImport', '.cdi-advanced-popup__close', CherryDataImport.closePopup );
 
 				if ( window.CherryDataImportVars.autorun ) {
 					CherryDataImport.startImport();
@@ -37,6 +40,55 @@
 				CherryDataImport.fileUpload();
 
 			} );
+
+		},
+
+		removeContent: function() {
+
+			var $this    = $( this ),
+				$pass    = $this.prev(),
+				$form    = $this.closest( '.cdi-remove-form' ),
+				$notices = $( '.cdi-remove-form__notices', $form ),
+				data     = {};
+
+			if ( $this.hasClass( 'in-progress' ) ) {
+				return;
+			}
+
+			data.action   = 'cherry-data-import-remove-content';
+			data.nonce    = window.CherryDataImportVars.nonce;
+			data.password = $pass.val();
+
+			$this.addClass( 'in-progress' );
+
+			$.ajax({
+				url: window.ajaxurl,
+				type: 'post',
+				dataType: 'json',
+				data: data,
+				error: function() {
+					$this.removeClass( 'in-progress' );
+				}
+			}).done( function( response ) {
+				if ( true == response.success ) {
+					$form.addClass( 'content-removed' ).html( response.data.message );
+					CherryDataImport.startImport();
+				} else {
+					$notices.addClass( 'cdi-error' ).removeClass( 'cdi-hide' );
+					$notices.html( response.data.message );
+				}
+				$this.removeClass( 'in-progress' );
+			});
+
+		},
+
+		clearRemoveNotices: function() {
+
+			var $this = $( this ),
+				$form    = $this.closest( '.cdi-remove-form' ),
+				$notices = $( '.cdi-remove-form__notices', $form );
+
+			$notices.removeClass( 'cdi-error' ).addClass( 'cdi-hide' );
 
 		},
 
@@ -61,8 +113,8 @@
 			}
 
 			url = url + '&type=' + type;
-			console.log( url );
 
+			window.location = url;
 		},
 
 		advancedImport: function() {
@@ -83,8 +135,6 @@
 			}
 
 			$( '.cdi-advanced-popup' ).removeClass( 'popup-hidden' ).data( 'url', url );
-
-			//window.location = url;
 
 		},
 

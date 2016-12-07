@@ -70,8 +70,41 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
 			add_action( 'wp_ajax_cherry-regenerate-thumbnails', array( $this, 'regenerate_chunk' ) );
 			add_action( 'wp_ajax_cherry-data-import-get-file-path', array( $this, 'get_file_path' ) );
+			add_action( 'wp_ajax_cherry-data-import-remove-content', array( $this, 'remove_content' ) );
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
 			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
+		}
+
+		/**
+		 * Check user password before content replacing.
+		 *
+		 * @return void
+		 */
+		public function remove_content() {
+
+			$this->validate_request();
+
+			if ( empty( $_REQUEST['password'] ) ) {
+				wp_send_json_error( array(
+					'message' => esc_html__( 'Password is empty', 'cherry-data-importer' ),
+				) );
+			}
+
+			$password = esc_attr( $_REQUEST['password'] );
+			$user_id  = get_current_user_id();
+			$data     = get_userdata( $user_id );
+
+			if ( wp_check_password( $password, $data->user_pass, $user_id ) ) {
+				cdi_tools()->clear_content();
+				wp_send_json_success( array(
+					'message' => esc_html__( 'Content successfully removed', 'cherry-data-importer' ),
+				) );
+			} else {
+				wp_send_json_error( array(
+					'message' => esc_html__( 'Entered password is invalid', 'cherry-data-importer' ),
+				) );
+			}
+
 		}
 
 		/**
@@ -675,6 +708,30 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				$this->data['advanced-slug'] = $slug;
 				cdi()->get_template( 'import-advanced.php' );
 			}
+
+		}
+
+		/**
+		 * Show password form if is replace installation type.
+		 *
+		 * @since  1.1.0
+		 * @return null
+		 */
+		public function remove_content_form() {
+
+			if ( ! isset( $_GET['type'] ) || 'replace' !== $_GET['type'] ) {
+				return;
+			}
+
+			if ( ! current_user_can( 'delete_users' ) ) {
+				esc_html_e(
+					'You don\'t have permissions to replace content, please re-enter with admiistrator account',
+					'cherry-data-importer'
+				);
+				return;
+			}
+
+			cdi()->get_template( 'remove-content-form.php' );
 
 		}
 

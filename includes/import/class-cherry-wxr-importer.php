@@ -87,6 +87,10 @@ class Cherry_WXR_Importer extends WP_Importer {
 	 */
 	public function __construct( $options = array(), $file = null ) {
 
+		if ( ! current_user_can( 'import' ) ) {
+			return;
+		}
+
 		$this->options = wp_parse_args( $options, array(
 			'prefill_existing_posts'    => true,
 			'prefill_existing_comments' => true,

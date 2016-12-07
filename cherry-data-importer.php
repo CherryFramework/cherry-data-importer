@@ -477,7 +477,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 
 			wp_localize_script( 'cherry-data-import', 'CherryDataImportVars', array(
 				'nonce'       => wp_create_nonce( 'cherry-data-import' ),
-				'autorun'     => ( ! empty( $_GET['step'] ) && 2 == $_GET['step'] && current_user_can( 'import' ) ) ? true : false,
+				'autorun'     => $this->import_autorun(),
 				'uploadTitle' => esc_html__( 'Select or upload file with demo content', 'cherry-data-importer' ),
 				'uploadBtn'   => esc_html__( 'Select', 'cherry-data-importer' ),
 				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
@@ -492,6 +492,25 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(
 				'nonce'       => wp_create_nonce( 'cherry-data-export' ),
 			) );
+
+		}
+
+		/**
+		 * Check if import autorun is allowed.
+		 *
+		 * @return boolean
+		 */
+		public function import_autorun() {
+
+			if ( isset( $_GET['type'] ) && 'replace' === $_GET['type'] ) {
+				return false;
+			}
+
+			if ( isset( $_GET['file'] ) ) {
+				return esc_attr( $_GET['file'] );
+			} else {
+				return false;
+			}
 
 		}
 

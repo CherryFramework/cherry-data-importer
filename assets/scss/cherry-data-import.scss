@@ -35,7 +35,8 @@ $bodyColor:       #fff;
 		line-height: 24px;
 	}
 	select,
-	input[type="text"] {
+	input[type="text"],
+	input[type="password"] {
 		padding: 15px 20px;
 		border: none;
 		border-radius: 2px;
@@ -603,12 +604,6 @@ $bodyColor:       #fff;
 		transition: all 200ms linear;
 		color: $dangerColor;
 		padding: 5px 0;
-		&.cdi-hide {
-			visibility: hidden;
-			opacity: 0;
-			transform: translateY(10px);
-			padding: 0;
-		}
 	}
 	&__item-mask {
 		position: absolute;
@@ -634,6 +629,41 @@ $bodyColor:       #fff;
 			position: relative;
 		}
 	}
+}
+
+.cdi-remove-form {
+	padding: 0 0 30px;
+	transition: all 200ms linear;
+	&.content-removed {
+		color: $successColor;
+	}
+	&__message {
+		padding: 0 0 20px;
+	}
+	&__input {
+		width: 230px;
+	}
+	&__note {
+		display: block;
+		font-weight: bold;
+	}
+	&__notices {
+		padding: 5px 0 0;
+		visibility: visible;
+		opacity: 1;
+		transform: translateY(0);
+		transition: all 200ms linear;
+		&.cdi-error {
+			color: $dangerColor;
+		}
+	}
+}
+
+.cdi-hide {
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(10px);
+	padding: 0;
 }
 
 @keyframes cssload-animation {
