@@ -99,6 +99,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_action( 'init', array( $this, 'start_session' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_assets' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ), 20 );
+			add_action( 'tm_wizard_enqueue_assets', array( $this, 'wizard_assets' ) );
 			add_filter( 'upload_mimes', array( $this, 'allow_upload_xml' ) );
 			add_action( 'init', array( $this, 'init' ) );
 			add_action( 'admin_menu', array( $this, 'menu_page' ), 30 );
@@ -525,6 +526,19 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				wp_enqueue_style( 'cherry-data-import' );
 				wp_enqueue_media();
 			}
+
+		}
+
+		/**
+		 * Enqueue assets to wizard.
+		 *
+		 * @return void
+		 */
+		public function wizard_assets() {
+
+			wp_enqueue_style( 'cherry-data-import' );
+			wp_enqueue_script( 'cherry-data-import' );
+			wp_enqueue_media();
 
 		}
 

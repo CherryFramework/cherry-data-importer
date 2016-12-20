@@ -21,13 +21,16 @@
 
 				CherryDataImport.globalProgress = $( CherryDataImport.selectors.globalProgress ).find( '.cdi-progress__bar' );
 
-				$( 'body' ).on( 'click.cdiImport', CherryDataImport.selectors.trigger, CherryDataImport.goToImport )
+				$( 'body' )
+				.on( 'click.cdiImport', CherryDataImport.selectors.trigger, CherryDataImport.goToImport )
 				.on( 'click.cdiImport', CherryDataImport.selectors.advancedTrigger, CherryDataImport.advancedImport )
 				.on( 'click.cdiImport', CherryDataImport.selectors.popupTrigger, CherryDataImport.confirmImport )
 				.on( 'click.cdiImport', CherryDataImport.selectors.removeContent, CherryDataImport.removeContent )
 				.on( 'focus.cdiImport', '.cdi-remove-form__input', CherryDataImport.clearRemoveNotices )
 				.on( 'change.cdiImport', 'input[name="install-type"]', CherryDataImport.advancedNotice )
 				.on( 'click.cdiImport', '.cdi-advanced-popup__close', CherryDataImport.closePopup );
+
+				$( document ).on( 'tm-wizard-install-finished', CherryDataImport.wizardPopup );
 
 				if ( window.CherryDataImportVars.autorun ) {
 					CherryDataImport.startImport();
@@ -41,6 +44,10 @@
 
 			} );
 
+		},
+
+		wizardPopup: function () {
+			$( '.cdi-advanced-popup' ).removeClass( 'popup-hidden' ).trigger( 'cdi-popup-opened' );
 		},
 
 		removeContent: function() {
@@ -106,8 +113,6 @@
 
 			$this.addClass( 'in-progress' );
 
-			console.log( $checkbox );
-
 			if ( undefined !== $checkbox.val() && '' !== $checkbox.val() ) {
 				type = $checkbox.val();
 			}
@@ -124,7 +129,7 @@
 				$type = $( '.advanced-item__type-checkbox input[type="checkbox"]', $item ),
 				url   = window.CherryDataImportVars.advURLMask,
 				full  = $item.data( 'full' ),
-				min   = $item.data( 'min' );
+				min   = $item.data( 'lite' );
 
 			$this.addClass( 'in-progress' );
 

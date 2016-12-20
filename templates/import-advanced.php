@@ -14,13 +14,13 @@ $label    = ! empty( $item['label'] )    ? $item['label']               : false;
 $demo_url = ! empty( $item['demo_url'] ) ? esc_url( $item['demo_url'] ) : false;
 $plugins  = ! empty( $item['plugins'] )  ? $item['plugins']             : false;
 $xml_full = ! empty( $item['full'] )     ? $item['full']                : false;
-$xml_min  = ! empty( $item['min'] )      ? $item['min']                 : false;
+$xml_min  = ! empty( $item['lite'] )     ? $item['lite']                : false;
 
 $full_path = cdi_tools()->secure_path( $xml_full );
 $min_path  = cdi_tools()->secure_path( $xml_min );
 
 ?>
-<div class="advanced-item" data-full="<?php echo $full_path; ?>" data-min="<?php echo $min_path; ?>">
+<div class="advanced-item" data-full="<?php echo $full_path; ?>" data-lite="<?php echo $min_path; ?>">
 	<div class="advanced-item__thumb">
 		<?php
 			if ( $thumb ) {

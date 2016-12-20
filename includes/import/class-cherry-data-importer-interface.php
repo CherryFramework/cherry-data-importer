@@ -73,6 +73,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-data-import-remove-content', array( $this, 'remove_content' ) );
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
 			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
+			add_action( 'tm_wizard_main_after', array( $this, 'wizard_popup' ) );
 		}
 
 		/**
@@ -117,6 +118,20 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			}
 
 			if ( ! isset( $_GET['tab'] ) || 'import' !== $_GET['tab'] ) {
+				return;
+			}
+
+			cdi()->get_template( 'advanced-popup.php' );
+		}
+
+		/**
+		 * Show content install type after plugins installation finished by Wizard.
+		 *
+		 * @return void
+		 */
+		public function wizard_popup() {
+
+			if ( ! isset( $_GET['step'] ) || 2 !== intval( $_GET['step'] ) ) {
 				return;
 			}
 

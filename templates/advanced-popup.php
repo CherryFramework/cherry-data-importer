@@ -5,7 +5,7 @@
 ?>
 <div class="cdi-advanced-popup popup-hidden">
 	<div class="cdi-advanced-popup__content">
-		<h3><?php esc_html_e( 'Warning', 'cherry-data-importer' ); ?></h3>
+		<h3><?php esc_html_e( 'Attention!', 'cherry-data-importer' ); ?></h3>
 		<?php esc_html_e( 'We are ready to install demo data. Do you want to append demo content to your existing content or completely rewrite it?', 'cherry-data-importer' ); ?>
 		<div class="cdi-advanced-popup__select">
 			<label class="cdi-advanced-popup__item">
