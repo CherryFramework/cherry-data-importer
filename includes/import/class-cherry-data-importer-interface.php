@@ -74,6 +74,18 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
 			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
 			add_action( 'tm_wizard_main_after', array( $this, 'wizard_popup' ) );
+			add_action( 'tm_wizard_js_settings', array( $this, 'prevent_redirect' ) );
+		}
+
+		/**
+		 * Prevent redirect after successfull Wizard installation.
+		 *
+		 * @param  array  $settings Wizard settings.
+		 * @return array
+		 */
+		public function prevent_redirect( $settings = array() ) {
+			$settings['redirect'] = false;
+			return $settings;
 		}
 
 		/**
