@@ -74,7 +74,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 
 				switch ( $step ) {
 					case 2:
-						$title = esc_html__( 'Step 2: Importing sample data', 'cherry-data-importer' );
+						$title = esc_html__( 'Importing sample data', 'cherry-data-importer' );
 						break;
 					case 3:
 						$title = esc_html__( 'Regenerate thumbnails', 'cherry-data-importer' );
@@ -83,7 +83,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 						$title = esc_html__( 'Import finished', 'cherry-data-importer' );
 						break;
 					default:
-						$title = esc_html__( 'Step 1: Select source to import', 'cherry-data-importer' );
+						$title = esc_html__( 'Select source to import', 'cherry-data-importer' );
 						break;
 				}
 			}
