@@ -6,7 +6,7 @@
 <div class="cdi-remove-form">
 	<div class="cdi-remove-form__message">
 		<?php
-			esc_html_e( 'Please, enter administrator password to confirm and start content replacing.', 'cherry-data-importer' );
+			esc_html_e( 'Please, enter your password to confirm and start content replacing.', 'cherry-data-importer' );
 		?>
 		<span class="cdi-remove-form__note"><?php
 			esc_html_e( 'NOTE: All your content will be replaced (posts, pages, comments, attachments and terms)', 'cherry-data-importer' );

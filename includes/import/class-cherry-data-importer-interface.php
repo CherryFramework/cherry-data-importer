@@ -66,6 +66,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 		 * Constructor for the class
 		 */
 		function __construct() {
+
 			add_action( 'admin_menu', array( $this, 'menu_page' ) );
 			add_action( 'wp_ajax_cherry-data-import-chunk', array( $this, 'import_chunk' ) );
 			add_action( 'wp_ajax_cherry-regenerate-thumbnails', array( $this, 'regenerate_chunk' ) );
@@ -73,19 +74,6 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-data-import-remove-content', array( $this, 'remove_content' ) );
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
 			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
-			add_action( 'tm_wizard_main_after', array( $this, 'wizard_popup' ) );
-			add_action( 'tm_wizard_js_settings', array( $this, 'prevent_redirect' ) );
-		}
-
-		/**
-		 * Prevent redirect after successfull Wizard installation.
-		 *
-		 * @param  array  $settings Wizard settings.
-		 * @return array
-		 */
-		public function prevent_redirect( $settings = array() ) {
-			$settings['redirect'] = false;
-			return $settings;
 		}
 
 		/**
