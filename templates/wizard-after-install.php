@@ -8,7 +8,7 @@ $type = ! empty( $_GET['type'] ) ? esc_attr( $_GET['type'] ) : 'lite';
 $file = cdi()->get_setting( array( 'advanced_import', $skin, $type ) );
 $file = cdi_tools()->secure_path( $file );
 ?>
-<h2><?php esc_html_e( 'Attention!', 'cherry-data-importer' ); ?></h2>
+<h2><?php esc_html_e( 'We\'re almost there!', 'cherry-data-importer' ); ?></h2>
 
 <?php esc_html_e( 'We are ready to install demo data. Do you want to append demo content to your existing content or completely rewrite it?.', 'cherry-data-importer' ); ?>
 <form method="get" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>">
@@ -35,6 +35,6 @@ $file = cdi_tools()->secure_path( $file );
 	<input type="hidden" name="page" value="<?php echo cdi()->slug; ?>">
 	<input type="hidden" name="referrer" value="tm-wizard">
 	<button class="btn btn-primary" data-wizard="confirm-install" data-loader="true" data-href=""><span class="text"><?php
-		esc_html_e( 'Start', 'tm-wizard' );
+		esc_html_e( 'Next', 'tm-wizard' );
 	?></span><span class="tm-wizard-loader"><span class="tm-wizard-loader__spinner"></span></span></button>
 </form>

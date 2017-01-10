@@ -15,7 +15,7 @@
 	<div class="cdi-remove-form__controls">
 		<input type="password" class="cdi-remove-form__input" placeholder="<?php esc_html_e( 'Please, enter your password', 'cherry-data-importer' ); ?>">
 		<button class="cdi-btn primary" data-action="remove-content"><span class="text"><?php
-				esc_html_e( 'Start', 'cherry-data-importer' );
+				esc_html_e( 'Import Content', 'cherry-data-importer' );
 			?></span><span class="cdi-loader-wrapper-alt"><span class="cdi-loader-alt"></span></span></button>
 	</div>
 	<div class="cdi-remove-form__notices cdi-hide">
