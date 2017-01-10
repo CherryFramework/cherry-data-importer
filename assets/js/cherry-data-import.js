@@ -234,7 +234,17 @@
 				$done      = $( '.cdi-install-summary__done', $row ),
 				$percent   = $( '.cdi-install-summary__percent', $row ),
 				$progress  = $( '.cdi-progress__bar', $row ),
+				$status    = $( '.cdi-progress-status', $row ),
 				percentVal = Math.round( ( parseInt( value ) / total ) * 100 );
+
+			if ( $done.hasClass( 'is-finished' ) ) {
+				return;
+			}
+
+			if ( 100 === percentVal ) {
+				$done.addClass( 'is-finished' ).closest( 'td' ).addClass( 'is-finished' );
+				$status.html( '<span class="dashicons dashicons-yes"></span>' );
+			}
 
 			$done.html( value );
 			$percent.html( percentVal );

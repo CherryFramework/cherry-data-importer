@@ -13,7 +13,7 @@
 			<tr>
 				<th><?php esc_html_e( 'Import Summary', 'cherry-data-importer' ); ?></th>
 				<th class="completed-cell"><?php esc_html_e( 'Completed', 'cherry-data-importer' ); ?></th>
-				<th colspan="2"><?php esc_html_e( 'Progress', 'cherry-data-importer' ); ?></th>
+				<th colspan="3"><?php esc_html_e( 'Progress', 'cherry-data-importer' ); ?></th>
 			</tr>
 		</theead>
 		<tbody>
@@ -42,11 +42,14 @@
 						/
 						<span class="cdi-install-summary__total"><?php echo $total; ?></span>
 					</td>
-					<td>
+					<td class="cdi-complete-val">
 						<span class="cdi-install-summary__percent">0</span>%
 					</td>
-					<td>
+					<td class="cdi-complete-progress">
 						<div class="cdi-progress progress-tiny"><span class="cdi-progress__bar"><span></span></span></div>
+					</td>
+					<td class="cdi-complete-status">
+						<div class="cdi-progress-status"></div>
 					</td>
 				</tr>
 				<?php

@@ -242,12 +242,27 @@ $bodyColor:       #fff;
 
 	th {
 		font-weight: normal;
-		text-align: center;
+		text-align: left;
 		padding: 10px 15px;
 	}
 
 	td {
 		padding: 10px 15px;
+		text-align: left;
+		&.cdi-complete-val {
+			width: 30px;
+		}
+		&.cdi-complete-status {
+			width: 20px;
+			color: $successColor;
+		}
+		&.cdi-complete-status,
+		&.cdi-complete-progress {
+			padding-left: 0;
+		}
+		&.is-finished {
+			color: $primaryColor;
+		}
 	}
 
 	tbody {
@@ -258,14 +273,15 @@ $bodyColor:       #fff;
 	.completed-cell {
 		border-left: 1px solid $bordersColor;
 		border-right: 1px solid $bordersColor;
-		text-align: center;
+		text-align: left;
 		+ td {
-			text-align: center;
+			text-align: left;
 		}
 	}
-	&__total {
-		color: $primaryColor;
-	}
+}
+
+.cdi-progress-status {
+	width: 20px;
 }
 
 .import-file {

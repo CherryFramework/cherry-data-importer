@@ -104,9 +104,25 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_action( 'admin_menu', array( $this, 'menu_page' ), 30 );
 
 			add_filter( 'tm_wizard_template_path', array( $this, 'wizard_success_page' ), 10, 2 );
+			add_filter( 'tm_wizard_notice_visibility', array( $this, 'wizard_notice_visibility' ) );
 
 			define( 'CHERRY_DEBUG', true );
 
+		}
+
+		/**
+		 * Hide wizard notice on importer pages.
+		 *
+		 * @param  bool $is_visible Default visibility value.
+		 * @return bool
+		 */
+		public function wizard_notice_visibility( $is_visible ) {
+
+			if ( empty( $_GET['page'] ) || $this->slug !== $_GET['page'] ) {
+				return $is_visible;
+			}
+
+			return false;
 		}
 
 		/**
@@ -187,6 +203,7 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 		 * Render plugin page html
 		 */
 		public function render_plugin_page() {
+
 			$this->get_template( 'page-header.php' );
 
 			$tabs = cdi()->get_page_tabs();
@@ -224,8 +241,11 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				$menu .= sprintf( $menu_format, $this->get_tab_link( $tab['id'] ), $tab['name'], $current );
 			}
 
-			printf( '<ul class="cdi-tabs__menu">%s</ul>', $menu );
-			printf( '<ul class="cdi-tabs__content">%s</ul>', $content );
+			if ( apply_filters( 'cherry_data_importer_tabs_menu_visibility', true ) ) {
+				printf( '<ul class="cdi-tabs__menu">%s</ul>', $menu );
+			}
+
+			printf( '<div class="cdi-tabs__content">%s</div>', $content );
 
 			$this->get_template( 'page-footer.php' );
 		}

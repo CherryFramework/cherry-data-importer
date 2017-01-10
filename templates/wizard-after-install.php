@@ -33,6 +33,7 @@ $file = cdi_tools()->secure_path( $file );
 	<input type="hidden" name="step" value="2">
 	<input type="hidden" name="file" value="<?php echo $file; ?>">
 	<input type="hidden" name="page" value="<?php echo cdi()->slug; ?>">
+	<input type="hidden" name="referrer" value="tm-wizard">
 	<button class="btn btn-primary" data-wizard="confirm-install" data-loader="true" data-href=""><span class="text"><?php
 		esc_html_e( 'Start', 'tm-wizard' );
 	?></span><span class="tm-wizard-loader"><span class="tm-wizard-loader__spinner"></span></span></button>
