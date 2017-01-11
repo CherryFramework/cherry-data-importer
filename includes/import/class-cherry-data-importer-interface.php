@@ -426,14 +426,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			);
 
 			if ( $is_last ) {
-				$data['redirect'] = add_query_arg(
-					array(
-						'page' => cdi()->slug,
-						'tab'  => $this->slug,
-						'step' => 4,
-					),
-					esc_url( admin_url( 'admin.php' ) )
-				);
+				$data['redirect'] = cdi()->page_url( array( 'tab' => $this->slug, 'step' => 4 ) );
 			}
 
 			wp_send_json_success( $data );
@@ -467,13 +460,11 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					cdi_cache()->clear_cache();
 					flush_rewrite_rules();
 
-					$redirect = add_query_arg(
+					$redirect = cdi()->page_url(
 						array(
-							'page' => cdi()->slug,
 							'tab'  => $this->slug,
 							'step' => $this->is_regenerate_required() ? 3 : 4,
-						),
-						esc_url( admin_url( 'admin.php' ) )
+						)
 					);
 
 					$data = array(

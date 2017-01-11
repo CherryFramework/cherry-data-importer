@@ -6,7 +6,10 @@
 <div class="cdi-content">
 	<?php cdi_interface()->remove_content_form(); ?>
 	<div id="cherry-import-progress" class="cdi-progress">
-		<span class="cdi-progress__bar"><span class="cdi-progress__label"><span></span></span></span>
+		<span class="cdi-progress__bar">
+			<span class="cdi-progress__label"><span></span></span>
+		</span>
+		<span class="cdi-progress__sub-label"></span>
 	</div>
 	<table class="cdi-install-summary">
 		<thead>

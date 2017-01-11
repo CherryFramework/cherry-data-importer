@@ -22,6 +22,10 @@ $bodyColor:       #fff;
 	max-width: 800px;
 	box-shadow: 0px 5px 21px rgba(0,0,0,0.1);
 	border-radius: 5px;
+	.updated,
+	.notice {
+		display: none;
+	}
 	&:after {
 		clear: both;
 		content: "";
@@ -33,6 +37,24 @@ $bodyColor:       #fff;
 		padding: 0 0 30px;
 		font-size: 20px;
 		line-height: 24px;
+	}
+
+	&.ref-tm-wizard {
+		background: #fff;
+		color: #96989a;
+		padding: 40px 50px;
+		border: 1px solid #e5e5e5;
+		font-size: 13px;
+		line-height: 19px;
+		max-width: 1100px;
+		.page-title {
+			margin: 0 0 30px;
+			padding: 0 0 15px;
+			font-size: 30px;
+			line-height: 1em;
+			color: $textColor;
+			border-bottom: 1px solid #e5e5e5;
+		}
 	}
 	select,
 	input[type="text"],
@@ -181,7 +203,8 @@ $bodyColor:       #fff;
 		top: 0;
 		bottom: 0;
 		background: $primaryColor;
-		span,
+		z-index: 2;
+		overflow: hidden;
 		&:after {
 			content: "";
 			position: absolute;
@@ -215,17 +238,26 @@ $bodyColor:       #fff;
 			overflow: hidden;
 		}
 	}
-	&__label {
-		content: attr( data-width );
-		color: #fff;
+	&__sub-label {
+		color: $textColor;
 		position: absolute;
-		width: 100%;
-		left: 0;
+		left: 15px;
+		right: 15px;
 		top: 0;
 		bottom: 0;
-		font-size: 14px;
 		line-height: 24px;
-		text-align: center;
+		text-align: left;
+		z-index: 1;
+	}
+	&__label {
+		color: #fff;
+		position: absolute;
+		left: 15px;
+		right: 15px;
+		top: 0;
+		bottom: 0;
+		line-height: 24px;
+		text-align: left;
 	}
 	&.progress-tiny {
 		height: 9px;
@@ -261,7 +293,7 @@ $bodyColor:       #fff;
 			padding-left: 0;
 		}
 		&.is-finished {
-			color: $primaryColor;
+			color: $successColor;
 		}
 	}
 

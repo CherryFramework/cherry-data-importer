@@ -527,16 +527,64 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
 				'tab'         => cdi_interface()->slug,
 				'error'       => esc_html__( 'Data processing error, please try again!', 'cherry-data-importer' ),
-				'advURLMask'  => add_query_arg(
-					array( 'page' => $this->slug, 'tab' => 'import', 'step' => 2, 'file' => '<-file->' ),
-					admin_url( 'admin.php' )
-				)
+				'advURLMask'  => $this->page_url( array( 'tab' => 'import', 'step' => 2, 'file' => '<-file->' ) ),
 			) );
 
 			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(
 				'nonce'       => wp_create_nonce( 'cherry-data-export' ),
 			) );
 
+		}
+
+		/**
+		 * Generate import page URL.
+		 *
+		 * @param  array  $args Arguments array.
+		 * @return string
+		 */
+		public function page_url( $args = array() ) {
+
+			$default = array(
+				'page' => $this->slug,
+			);
+
+			if ( ! empty( $_REQUEST['referrer'] ) ) {
+				$default['referrer'] = esc_attr( $_REQUEST['referrer'] );
+			}
+
+			if ( empty( $default['referrer'] ) && $this->get_server_ref() ) {
+				$default['referrer'] = $this->get_server_ref();
+			}
+
+			$args = array_merge( $default, $args );
+
+			return add_query_arg( $args, esc_url( admin_url( 'admin.php' ) ) );
+		}
+
+		/**
+		 * Try to get referrer from server vars
+		 *
+		 * @return string|bool false
+		 */
+		public function get_server_ref() {
+
+			if ( empty( $_SERVER['HTTP_REFERER'] ) ) {
+				return false;
+			}
+
+			$parts = parse_url( $_SERVER['HTTP_REFERER'] );
+
+			if ( ! $parts || empty( $parts['query'] ) ) {
+				return false;
+			}
+
+			parse_str( $parts['query'], $query );
+
+			if ( empty( $query ) || empty( $query['referrer'] ) ) {
+				return false;
+			}
+
+			return esc_attr( $query['referrer'] );
 		}
 
 		/**

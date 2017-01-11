@@ -212,9 +212,9 @@
 
 					CherryDataImport.globalProgress
 						.css( 'width', response.data.complete + '%' )
-						.find( '.cdi-progress__label' ).text( response.data.complete + '%' );
-
-
+						.find( '.cdi-progress__label' ).text( response.data.complete + '%' )
+						.closest( '.cdi-progress__bar' )
+						.next( '.cdi-progress__sub-label' ).text( response.data.complete + '%' );
 
 					CherryDataImport.globalProgress.siblings( '.cdi-progress__placeholder' ).remove();
 				}
