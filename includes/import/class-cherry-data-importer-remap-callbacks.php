@@ -48,6 +48,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu_widgets' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_home_page' ) );
+
 		}
 
 		/**

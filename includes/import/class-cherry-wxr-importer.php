@@ -1212,6 +1212,19 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return;
 		}
 
+		/**
+		 * Allow skip some posts from 3rd party plugins or theme
+		 * (shame on MotoPress)
+		 *
+		 * @param bool
+		 * @param array
+		 */
+		$skip_post = apply_filters( 'cherry_import_skip_post', false, $data );
+
+		if ( $skip_post ) {
+			return;
+		}
+
 		$post_type_object = get_post_type_object( $data['post_type'] );
 
 		// Is this type even valid?

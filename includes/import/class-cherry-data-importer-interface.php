@@ -451,6 +451,8 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			$chunks    = cdi_cache()->get( 'chunks_count' );
 			$processed = cdi_cache()->get( 'processed_summary' );
 
+			require_once cdi()->path( 'includes/import/class-cherry-data-importer-extensions.php' );
+
 			switch ( $chunk ) {
 
 				case $chunks:
