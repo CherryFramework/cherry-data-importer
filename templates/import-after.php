@@ -5,7 +5,7 @@
 ?>
 <div>
 	<div class="cdi-success-mesage"><?php
-		_e( 'What to do next?', 'cherry-data-importer' );
+		_e( 'Now you can visit your website, start customization… or install another skin ;)', 'cherry-data-importer' );
 	?></div>
 	<div class="cdi-success-links"><?php
 

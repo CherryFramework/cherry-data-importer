@@ -77,7 +77,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 						$title = esc_html__( 'Importing sample data', 'cherry-data-importer' );
 						break;
 					case 3:
-						$title = esc_html__( 'Regenerate thumbnails', 'cherry-data-importer' );
+						$title = esc_html__( 'Regenerating thumbnails', 'cherry-data-importer' );
 						break;
 					case 4:
 						$title = esc_html__( 'Import finished', 'cherry-data-importer' );
