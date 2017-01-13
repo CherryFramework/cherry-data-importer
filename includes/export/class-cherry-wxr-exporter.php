@@ -162,7 +162,9 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			set_time_limit( 0 );
 
 			$xml = str_replace(
-				"</wp:base_blog_url>", "</wp:base_blog_url>\r\n" . $this->get_options() . $this->get_widgets(), $xml
+				"</wp:base_blog_url>",
+				"</wp:base_blog_url>\r\n" . $this->get_options() . $this->get_widgets() . $this->get_tables(),
+				$xml
 			);
 			return $xml;
 		}
@@ -195,6 +197,43 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 			return "\t<wp:options>\r\n" . $options . "\t</wp:options>\r\n";
 
+		}
+
+		/**
+		 * Get tables to export
+		 *
+		 * @return string
+		 */
+		public function get_tables() {
+
+			$user_tables = cdi()->get_setting( array( 'export', 'tables' ) );
+
+			if ( empty( $user_tables ) ) {
+				return;
+			}
+
+			global $wpdb;
+
+			$result = '';
+
+			foreach ( $user_tables as $table ) {
+				$name = esc_attr( $wpdb->prefix . $table );
+				$data = $wpdb->get_results( "SELECT * FROM $name WHERE 1", ARRAY_A );
+
+				if ( empty( $data ) ) {
+					continue;
+				}
+
+				$data = maybe_serialize( $data );
+
+				$result .= "\t\t<" . $name . ">" . wxr_cdata( $data ) . "</" . $name . ">\r\n";
+			}
+
+			if ( empty( $result ) ) {
+				return;
+			}
+
+			return "\t<wp:user_tables>\r\n" . $result . "\r\n\t</wp:user_tables>\r\n";
 		}
 
 		/**

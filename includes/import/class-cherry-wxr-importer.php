@@ -1120,7 +1120,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		// Hook after import
-		do_action( 'cherry_data_importer_after_process_widget' );
+		do_action( 'cherry_data_importer_after_process_widget', $sidebars_widgets );
 
 		// Return results
 		return apply_filters( 'cherry_data_widget_import_results', $results );

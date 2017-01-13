@@ -469,6 +469,11 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 						)
 					);
 
+					/**
+					 * Hook on last import chunk
+					 */
+					do_action( 'cherry_data_import_finish' );
+
 					$data = array(
 						'isLast'    => true,
 						'complete'  => 100,
@@ -485,6 +490,11 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 					$importer = $this->get_importer();
 
 					$importer->chunked_import( $this->chunk_size(), $offset );
+
+					/**
+					 * Hook on last import chunk
+					 */
+					do_action( 'cherry_data_import_chunk', $chunk );
 
 					$data = array(
 						'action'    => 'cherry-data-import-chunk',

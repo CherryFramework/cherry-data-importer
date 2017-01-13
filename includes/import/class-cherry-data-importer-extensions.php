@@ -31,8 +31,21 @@ if ( ! class_exists( 'Cherry_Data_Importer_Extensions' ) ) {
 		 * Constructor for the class
 		 */
 		public function __construct() {
+
 			// Prevent from errors triggering while MotoPress Booking posts importing (loving it)
 			add_filter( 'cherry_import_skip_post', array( $this, 'prevent_import_errors' ), 10, 2 );
+
+			// Clear fonts cache after import
+			add_action( 'cherry_data_import_finish', array( $this, 'clear_fonts_cache' ) );
+		}
+
+		/**
+		 * Ckear Google fonts cache.
+		 *
+		 * @return void
+		 */
+		public function clear_fonts_cache() {
+			delete_transient( 'cherry_google_fonts_url' );
 		}
 
 		/**

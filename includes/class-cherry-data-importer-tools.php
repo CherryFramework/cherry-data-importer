@@ -207,6 +207,26 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 				$wpdb->query( "TRUNCATE {$table};" );
 			}
 
+			$options = apply_filters( 'cherry_data_clear_options_on_remove', array(
+				'sidebars_widgets',
+			) );
+
+			foreach ( $options as $option ) {
+				delete_option( $option );
+			}
+
+			/**
+			 * Clear widgets data
+			 */
+			$widgets = $wpdb->get_results(
+				"SELECT * FROM $wpdb->options WHERE `option_name` LIKE 'widget_%'"
+			);
+
+			if ( ! empty( $widgets ) ) {
+				foreach ( $widgets as $widget ) {
+					delete_option( $widget->option_name );
+				}
+			}
 		}
 
 		/**

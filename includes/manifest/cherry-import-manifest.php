@@ -24,6 +24,7 @@ $settings = array(
 		'message' => __( 'Export all content with TemplateMonster Data Export tool', 'cherry-data-importer' ),
 		'logo'    => $this->url( 'assets/img/monster-logo.png' ),
 		'options' => array(),
+		'tables'  => array(),
 	),
 	'success-links' => array(
 		'home' => array(
