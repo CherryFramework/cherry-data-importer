@@ -201,6 +201,7 @@ $bodyColor:       #fff;
 		background: $primaryColor;
 		z-index: 2;
 		overflow: hidden;
+		border-radius: 12px 0 0 12px;
 		&:after {
 			content: "";
 			position: absolute;
@@ -678,9 +679,7 @@ $bodyColor:       #fff;
 .cdi-remove-form {
 	padding: 0 0 30px;
 	transition: all 200ms linear;
-	&.content-removed {
-		color: $successColor;
-	}
+
 	&__message {
 		padding: 0 0 20px;
 	}
@@ -697,6 +696,7 @@ $bodyColor:       #fff;
 		opacity: 1;
 		transform: translateY(0);
 		transition: all 200ms linear;
+		color: $successColor;
 		&.cdi-error {
 			color: $dangerColor;
 		}
@@ -705,7 +705,7 @@ $bodyColor:       #fff;
 
 .cdi-slider {
 	margin: 0 -50px;
-	padding: 50px 0 145px;
+	padding: 50px 0 60px;
 	text-align: center;
 	position: relative;
 	.slider-title {
@@ -722,15 +722,6 @@ $bodyColor:       #fff;
 		font-size: 13px;
 		line-height: 23px;
 		padding: 0 30%;
-	}
-	&:after {
-		content: "";
-		height: 1px;
-		left: 50px;
-		right: 50px;
-		bottom: 65px;
-		background: #e5e5e5;
-		position: absolute;
 	}
 }
 

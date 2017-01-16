@@ -30,7 +30,9 @@
 				.on( 'change.cdiImport', 'input[name="install-type"]', CherryDataImport.advancedNotice )
 				.on( 'click.cdiImport', '.cdi-advanced-popup__close', CherryDataImport.closePopup );
 
-				$( document ).on( 'tm-wizard-install-finished', CherryDataImport.wizardPopup );
+				$( document )
+				.on( 'tm-wizard-install-finished', CherryDataImport.wizardPopup )
+				.on( 'cdiSliderInit', CherryDataImport.initSlider );
 
 				if ( window.CherryDataImportVars.autorun ) {
 					CherryDataImport.startImport();
@@ -98,15 +100,34 @@
 				}
 			}).done( function( response ) {
 				if ( true == response.success ) {
-					$form.addClass( 'content-removed' ).html( response.data.message );
+
+					$form.addClass( 'content-removed' );
+					$notices.removeClass( 'cdi-hide' );
+					$notices.html( response.data.message ).removeClass( 'cdi-error' );
+
+					if ( undefined !== response.data.slider ) {
+						CherryDataImport.showSlider( $form, response.data.slider );
+					}
+
 					CherryDataImport.startImport();
+
 				} else {
 					$notices.addClass( 'cdi-error' ).removeClass( 'cdi-hide' );
 					$notices.html( response.data.message );
 				}
+
 				$this.removeClass( 'in-progress' );
 			});
 
+		},
+
+		showSlider: function( where, slider ) {
+			setTimeout( function() {
+				where.before( slider );
+				where.remove();
+				console.log('');
+				$( document ).trigger( 'cdiSliderInit' );
+			}, 2000 );
 		},
 
 		clearRemoveNotices: function() {

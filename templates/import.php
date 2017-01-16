@@ -5,7 +5,6 @@
 ?>
 <div class="cdi-content">
 	<?php cdi_slider()->slider_assets(); ?>
-	<?php cdi_slider()->render(); ?>
 	<?php cdi_interface()->remove_content_form(); ?>
 	<div id="cherry-import-progress" class="cdi-progress">
 		<span class="cdi-progress__bar">
