@@ -99,6 +99,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				cdi_tools()->clear_content();
 				wp_send_json_success( array(
 					'message' => esc_html__( 'Content successfully removed', 'cherry-data-importer' ),
+					'slider'  => cdi_slider()->render( false ),
 				) );
 			} else {
 				wp_send_json_error( array(

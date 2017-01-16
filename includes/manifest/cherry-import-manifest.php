@@ -40,6 +40,9 @@ $settings = array(
 			'url'    => admin_url( 'customize.php' ),
 		),
 	),
+	'slider' => array(
+		'path' => 'https://raw.githubusercontent.com/templatemonster/tm-wizard-slider/master/slides.json',
+	),
 	/*
 	'advanced_import' => array(
 		'default' => array(

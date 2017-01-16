@@ -42,6 +42,26 @@
 
 				CherryDataImport.fileUpload();
 
+				CherryDataImport.initSlider();
+
+			} );
+
+		},
+
+		initSlider: function() {
+
+			var $slider = $( '.cdi-slider .swiper-container' );
+
+			if ( ! $slider.length ) {
+				return;
+			}
+
+			new Swiper( $slider[0], {
+				paginationClickable: true,
+				autoplay: 15000,
+				pagination: '.slider-pagination',
+				parallax: true,
+				speed: 600
 			} );
 
 		},
