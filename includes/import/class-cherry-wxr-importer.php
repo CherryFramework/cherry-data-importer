@@ -152,6 +152,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				'media'    => 0,
 				'comments' => 0,
 				'terms'    => 0,
+				'tables'   => 0,
 			);
 		}
 
@@ -160,6 +161,10 @@ class Cherry_WXR_Importer extends WP_Importer {
 			case 'wp:tag':
 			case 'wp:term':
 				$summary['terms']++;
+				break;
+
+			case 'wp:user_tables':
+				$summary['tables']++;
 				break;
 
 			case 'wp:wp_author':
@@ -224,6 +229,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				'media'    => 0,
 				'comments' => 0,
 				'terms'    => 0,
+				'tables'   => 0,
 			);
 		}
 
@@ -257,6 +263,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			case 'wp:term':
 			case 'wp:options':
 			case 'wp:widgets_data':
+			case 'wp:user_tables':
 				$current++;
 				break;
 
@@ -329,6 +336,24 @@ class Cherry_WXR_Importer extends WP_Importer {
 				case 'wp:base_blog_url':
 					cdi_cache()->update( 'home', $this->reader->readString() );
 
+					$this->next();
+					break;
+
+				case 'wp:user_tables':
+
+					$node = $this->reader->expand();
+
+					$parsed = $this->parse_tables_node( $node );
+
+					if ( is_wp_error( $parsed ) ) {
+						// Skip the rest of this post
+						$this->next();
+						break;
+					}
+
+					$status = $this->process_tables( $parsed );
+
+					// Handled everything in this node, move on to the next
 					$this->next();
 					break;
 
@@ -485,6 +510,31 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 			$option_key = str_replace( 'wp:', '', $child->tagName );
 			$data[ $option_key ] = $child->textContent;
+
+		}
+
+		return $data;
+
+	}
+
+	/**
+	 * Prepare tables data
+	 *
+	 * @param  object $node Parsed XML tables object.
+	 * @return array
+	 */
+	public function parse_tables_node( $node ) {
+
+		$data = array();
+
+		foreach ( $node->childNodes as $child ) {
+
+			// We only care about child elements
+			if ( $child->nodeType !== XML_ELEMENT_NODE ) {
+				continue;
+			}
+
+			$data[ $child->tagName ] = $child->textContent;
 
 		}
 
@@ -904,6 +954,53 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		foreach ( $data as $key => $value ) {
 			update_option( $key, $this->maybe_decode( $value ) );
+		}
+
+	}
+
+	/**
+	 * Import custom tblaes data
+	 *
+	 * @param  array $data Data import.
+	 * @return void
+	 */
+	protected function process_tables( $data ) {
+
+		if ( empty( $data ) ) {
+			return;
+		}
+
+		foreach ( $data as $table => $values ) {
+			$this->process_single_table( $table, $values );
+			$this->update_processed_summary( 'tables' );
+		}
+
+	}
+
+	/**
+	 * Import single table.
+	 *
+	 * @param  string $table Table name.
+	 * @param  string $data  Serialized table data.
+	 * @return bool
+	 */
+	public function process_single_table( $table, $data ) {
+
+		global $wpdb;
+
+		$name = $wpdb->prefix . $table;
+		$data = maybe_unserialize( $data );
+
+		if ( ! is_array( $data ) ) {
+			return false;
+		}
+
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$name'" ) != $name ) {
+			continue;
+		}
+
+		foreach ( $data as $row ) {
+			$wpdb->replace( $name, $row );
 		}
 
 	}

@@ -226,7 +226,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 
 				$data = maybe_serialize( $data );
 
-				$result .= "\t\t<" . $name . ">" . wxr_cdata( $data ) . "</" . $name . ">\r\n";
+				$result .= "\t\t<" . $table . ">" . wxr_cdata( $data ) . "</" . $table . ">\r\n";
 			}
 
 			if ( empty( $result ) ) {

@@ -30,6 +30,7 @@
 				'comments' => esc_html__( 'Comments', 'cherry-data-importer' ),
 				'media'    => esc_html__( 'Media', 'cherry-data-importer' ),
 				'terms'    => esc_html__( 'Terms', 'cherry-data-importer' ),
+				'tables'   => esc_html__( 'Tables', 'cherry-data-importer' ),
 			);
 
 			foreach ( $summary as $type => $total ) {
