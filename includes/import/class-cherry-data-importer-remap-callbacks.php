@@ -128,7 +128,8 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 				return $matches[0];
 			}
 
-			$ids     = str_replace( ' ', '', $matches[2] );
+			$ids     = str_replace( ', ', ',', $matches[2] );
+			$ids     = str_replace( ' ', ',', $ids );
 			$ids     = explode( ',', $ids );
 			$new_ids = array();
 
@@ -156,7 +157,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 */
 		public function prepare_regex( $item ) {
 
-			return '/(\[' . $item['shortcode'] . '[^\]]*' . $item['attr'] . ')="([0-9\,]*)"/';
+			return '/(\[' . $item['shortcode'] . '[^\]]*' . $item['attr'] . ')="([0-9\,\s]*)"/';
 
 		}
 

@@ -996,7 +996,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '$name'" ) != $name ) {
-			continue;
+			return false;
 		}
 
 		foreach ( $data as $row ) {
