@@ -6,6 +6,11 @@
 <div class="cdi-content">
 	<?php cdi_slider()->slider_assets(); ?>
 	<?php cdi_interface()->remove_content_form(); ?>
+	<?php
+		if ( isset( $_GET['type'] ) && 'append' === $_GET['type'] ) {
+			cdi_slider()->render();
+		}
+	?>
 	<div id="cherry-import-progress" class="cdi-progress">
 		<span class="cdi-progress__bar">
 			<span class="cdi-progress__label"><span></span></span>

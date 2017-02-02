@@ -35,6 +35,13 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		public $terms = array();
 
 		/**
+		 * Store processed shortcodes data
+		 *
+		 * @var array
+		 */
+		private $shortcodes_data = array();
+
+		/**
 		 * Constructor for the class
 		 */
 		public function __construct() {
@@ -42,6 +49,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_options' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'postprocess_posts' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_thumbs' ) );
+			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_home_page' ) );
 
 			// Manipulations with terms remap array
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_term_parents' ) );
@@ -124,14 +132,16 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 */
 		public function replace_ids( $matches ) {
 
-			if ( ! isset( $matches[1] ) || ! isset( $matches[2] ) ) {
+			if ( 5 !== count( $matches ) ) {
 				return $matches[0];
 			}
 
-			$ids     = str_replace( ', ', ',', $matches[2] );
-			$ids     = str_replace( ' ', ',', $ids );
-			$ids     = explode( ',', $ids );
-			$new_ids = array();
+			$tag       = $matches[2];
+			$attr      = $matches[3];
+			$data      = $this->shortcodes_data;
+			$delimiter = isset( $data[ $tag ][ $attr ] ) ? $data[ $tag ][ $attr ] : ',';
+			$ids       = explode( $delimiter, $matches[4] );
+			$new_ids   = array();
 
 			foreach ( $ids as $id ) {
 
@@ -143,7 +153,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 
 			}
 
-			$new_ids = implode( ',', $new_ids );
+			$new_ids = implode( $delimiter, $new_ids );
 			$return  = sprintf( '%1$s="%2$s"', $matches[1], $new_ids );
 
 			return $return;
@@ -157,7 +167,17 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 */
 		public function prepare_regex( $item ) {
 
-			return '/(\[' . $item['shortcode'] . '[^\]]*' . $item['attr'] . ')="([0-9\,\s]*)"/';
+			$delimiter = isset( $item['delimiter'] ) ? $item['delimiter'] : ',';
+			$tag       = $item['shortcode'];
+			$attr      = $item['attr'];
+
+			if ( ! isset( $this->shortcodes_data[ $tag ] ) ) {
+				$this->shortcodes_data[ $tag ] = array();
+			}
+
+			$this->shortcodes_data[ $tag ][ $attr ] = $delimiter;
+
+			return '/(\[(' . $item['shortcode'] . ')[^\]]*(' . $item['attr'] . '))="([0-9\,\s]*)"/';
 
 		}
 

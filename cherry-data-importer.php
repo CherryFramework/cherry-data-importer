@@ -521,14 +521,14 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			);
 
 			wp_localize_script( 'cherry-data-import', 'CherryDataImportVars', array(
-				'nonce'       => wp_create_nonce( 'cherry-data-import' ),
-				'autorun'     => $this->import_autorun(),
-				'uploadTitle' => esc_html__( 'Select or upload file with demo content', 'cherry-data-importer' ),
-				'uploadBtn'   => esc_html__( 'Select', 'cherry-data-importer' ),
-				'file'        => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
-				'tab'         => cdi_interface()->slug,
-				'error'       => esc_html__( 'Data processing error, please try again!', 'cherry-data-importer' ),
-				'advURLMask'  => $this->page_url( array( 'tab' => 'import', 'step' => 2, 'file' => '<-file->' ) ),
+				'nonce'        => wp_create_nonce( 'cherry-data-import' ),
+				'autorun'      => $this->import_autorun(),
+				'uploadTitle'  => esc_html__( 'Select or upload file with demo content', 'cherry-data-importer' ),
+				'uploadBtn'    => esc_html__( 'Select', 'cherry-data-importer' ),
+				'file'         => ( isset( $_GET['file'] ) ) ? esc_attr( $_GET['file'] ) : false,
+				'tab'          => cdi_interface()->slug,
+				'error'        => esc_html__( 'Data processing error, please try again!', 'cherry-data-importer' ),
+				'advURLMask'   => $this->page_url( array( 'tab' => 'import', 'step' => 2, 'file' => '<-file->' ) ),
 			) );
 
 			wp_localize_script( 'cherry-data-export', 'CherryDataExportVars', array(
