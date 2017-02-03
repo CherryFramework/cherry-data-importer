@@ -74,6 +74,30 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			add_action( 'wp_ajax_cherry-data-import-remove-content', array( $this, 'remove_content' ) );
 			add_action( 'cherry_data_importer_before_messages', array( $this, 'check_server_params' ) );
 			add_action( 'admin_footer', array( $this, 'advanced_popup' ) );
+			add_action( 'init', array( $this, 'maybe_skip_installation' ), 20 );
+		}
+
+		/**
+		 * Maybe skip demo content installation
+		 *
+		 * @return bool|void
+		 */
+		public function maybe_skip_installation() {
+
+			if ( ! isset( $_GET['page'] ) || cdi()->slug !== $_GET['page'] ) {
+				return false;
+			}
+
+			if ( ! isset( $_GET['step'] ) || '2' !== $_GET['step'] ) {
+				return false;
+			}
+
+			if ( isset( $_GET['type'] ) && 'skip' === $_GET['type'] ) {
+				wp_redirect( cdi()->page_url( array( 'step' => 4 ) ) );
+				die();
+			}
+
+			return false;
 		}
 
 		/**

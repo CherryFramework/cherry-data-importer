@@ -28,6 +28,14 @@ $file = cdi_tools()->secure_path( $file );
 			?></span>
 
 		</label>
+		<label class="tm-wizard-type__item">
+			<input type="radio" name="type" value="skip">
+			<span class="tm-wizard-type__item-mask"></span>
+			<span class="tm-wizard-type__item-label"><?php
+				esc_html_e( 'Skip demo content installation', 'tm-wizard' );
+			?></span>
+
+		</label>
 	</div>
 	<input type="hidden" name="tab" value="import">
 	<input type="hidden" name="step" value="2">
