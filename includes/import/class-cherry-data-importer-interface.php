@@ -93,6 +93,14 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 			}
 
 			if ( isset( $_GET['type'] ) && 'skip' === $_GET['type'] ) {
+
+				require_once cdi()->path( 'includes/import/class-cherry-data-importer-extensions.php' );
+
+				/**
+				 * Hook before redirect on demo content installation skip
+				 */
+				do_action( 'cherry_data_import_before_skip_redirect' );
+
 				wp_redirect( cdi()->page_url( array( 'step' => 4 ) ) );
 				die();
 			}
