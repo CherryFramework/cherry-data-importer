@@ -147,6 +147,21 @@ if ( ! class_exists( 'Cherry_Data_Importer_Tools' ) ) {
 		}
 
 		/**
+		 * Check if passed table is exists in database
+		 *
+		 * @param  string  $table Table name.
+		 * @return boolean
+		 */
+		public function is_db_table_exists( $table = '' ) {
+
+			global $wpdb;
+
+			$table_name = $wpdb->prefix . $table;
+
+			return ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name );
+		}
+
+		/**
 		 * Escape unsecure for public usage part of file path and return base64 encoded result.
 		 *
 		 * @param  string $file Full file path

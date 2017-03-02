@@ -217,6 +217,11 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			$result = '';
 
 			foreach ( $user_tables as $table ) {
+
+				if ( ! cdi_tools()->is_db_table_exists( $table ) ) {
+					continue;
+				}
+
 				$name = esc_attr( $wpdb->prefix . $table );
 				$data = $wpdb->get_results( "SELECT * FROM $name WHERE 1", ARRAY_A );
 

@@ -971,6 +971,11 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		foreach ( $data as $table => $values ) {
+
+			if ( ! cdi_tools()->is_db_table_exists( $table ) ) {
+				continue;
+			}
+
 			$this->process_single_table( $table, $values );
 			$this->update_processed_summary( 'tables' );
 		}
@@ -992,10 +997,6 @@ class Cherry_WXR_Importer extends WP_Importer {
 		$data = maybe_unserialize( $data );
 
 		if ( ! is_array( $data ) ) {
-			return false;
-		}
-
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$name'" ) != $name ) {
 			return false;
 		}
 
