@@ -953,9 +953,40 @@ class Cherry_WXR_Importer extends WP_Importer {
 		}
 
 		foreach ( $data as $key => $value ) {
-			update_option( $key, $this->maybe_decode( $value ) );
+			$value = $this->maybe_decode( $value );
+			update_option( $key, $value );
+
+			if ( false !== strpos( $key, 'theme_mods' ) ) {
+				$this->clone_theme_mods( $key, $value );
+			}
+
 		}
 
+	}
+
+	/**
+	 * Maybe clone theme mods for child theme.
+	 *
+	 * @param  string $option Option name.
+	 * @param  array  $mods   Mods to clone.
+	 * @return bool
+	 */
+	protected function clone_theme_mods( $option, $mods ) {
+
+		$imported_theme = str_replace( 'theme_mods_', '', $option );
+		$current_theme  = get_stylesheet();
+
+		if ( $current_theme === $imported_theme ) {
+			return false;
+		}
+
+		$current_parent = get_template();
+
+		if ( $imported_theme !== $current_parent ) {
+			return false;
+		}
+
+		update_option( 'theme_mods_' . $current_theme, $mods );
 	}
 
 	/**
