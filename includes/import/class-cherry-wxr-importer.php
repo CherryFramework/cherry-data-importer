@@ -956,10 +956,30 @@ class Cherry_WXR_Importer extends WP_Importer {
 			$value = $this->maybe_decode( $value );
 			update_option( $key, $value );
 
-			if ( false !== strpos( $key, 'theme_mods' ) ) {
-				$this->clone_theme_mods( $key, $value );
-			}
+			$this->maybe_clone_child_options( $key, $value );
+		}
 
+	}
+
+	/**
+	 * Maybe clone passed option name and value into child theme.
+	 *
+	 * @param  string $option Option name.
+	 * @param  string $value  Options value.
+	 * @return void
+	 */
+	protected function maybe_clone_child_options( $option, $value ) {
+
+		$to_copy = apply_filters( 'cherry_data_importer_copy_options_to_child', array(
+			'theme_mods_%s',
+			'%s_sidebars',
+		) );
+
+		foreach ( $to_copy as $mask ) {
+			$replace = str_replace( '%s', '', $mask );
+			if ( false !== strpos( $option, $replace ) ) {
+				$this->clone_theme_mods( $option, $value, $mask );
+			}
 		}
 
 	}
@@ -968,12 +988,14 @@ class Cherry_WXR_Importer extends WP_Importer {
 	 * Maybe clone theme mods for child theme.
 	 *
 	 * @param  string $option Option name.
-	 * @param  array  $mods   Mods to clone.
+	 * @param  array  $value  Mods to clone.
+	 * @param  string $mask   OPtion mask to replace.
 	 * @return bool
 	 */
-	protected function clone_theme_mods( $option, $mods ) {
+	protected function clone_theme_mods( $option, $value, $mask ) {
 
-		$imported_theme = str_replace( 'theme_mods_', '', $option );
+		$replace        = str_replace( '%s', '', $mask );
+		$imported_theme = str_replace( $replace, '', $option );
 		$current_theme  = get_stylesheet();
 
 		if ( $current_theme === $imported_theme ) {
@@ -986,7 +1008,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return false;
 		}
 
-		update_option( 'theme_mods_' . $current_theme, $mods );
+		return update_option( sprintf( $mask, $current_theme ), $value );
 	}
 
 	/**
