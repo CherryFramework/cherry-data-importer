@@ -3,7 +3,14 @@
  * Template part for displaying advanced popup
  */
 
-$skin = tm_wizard_interface()->get_skin_data( 'slug' );
+if ( function_exists( 'cherry_plugin_wizard_interface' ) ) {
+	$skin     = cherry_plugin_wizard_interface()->get_skin_data( 'slug' );
+	$referrer = 'cherry-plugin-wizard';
+} elseif ( function_exists( 'tm_wizard_interface' ) ) {
+	$skin     = tm_wizard_interface()->get_skin_data( 'slug' );
+	$referrer = 'tm-wizard';
+}
+
 $type = ! empty( $_GET['type'] ) ? esc_attr( $_GET['type'] ) : 'lite';
 $file = cdi()->get_setting( array( 'advanced_import', $skin, $type ) );
 $file = cdi_tools()->secure_path( $file );
@@ -56,7 +63,7 @@ $file = cdi_tools()->secure_path( $file );
 	<input type="hidden" name="step" value="2">
 	<input type="hidden" name="file" value="<?php echo $file; ?>">
 	<input type="hidden" name="page" value="<?php echo cdi()->slug; ?>">
-	<input type="hidden" name="referrer" value="tm-wizard">
+	<input type="hidden" name="referrer" value="<?php echo $referrer; ?>">
 	<button class="btn btn-primary" data-wizard="confirm-install" data-loader="true" data-href=""><span class="text"><?php
 		esc_html_e( 'Next', 'tm-wizard' );
 	?></span><span class="tm-wizard-loader"><span class="tm-wizard-loader__spinner"></span></span></button>

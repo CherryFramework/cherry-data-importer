@@ -39,7 +39,8 @@ $bodyColor:       #fff;
 		line-height: 24px;
 	}
 
-	&.ref-tm-wizard {
+	&.ref-tm-wizard,
+	&.ref-cherry-plugin-wizard {
 		background: #fff;
 		color: #96989a;
 		padding: 40px 50px;

@@ -106,6 +106,9 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			add_filter( 'tm_wizard_template_path', array( $this, 'wizard_success_page' ), 10, 2 );
 			add_filter( 'tm_wizard_notice_visibility', array( $this, 'wizard_notice_visibility' ) );
 
+			add_filter( 'cherry_plugin_wizard_template_path', array( $this, 'wizard_success_page' ), 10, 2 );
+			add_filter( 'cherry_plugin_wizard_notice_visibility', array( $this, 'wizard_notice_visibility' ) );
+
 			define( 'CHERRY_DEBUG', true );
 
 		}
@@ -138,13 +141,15 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 				return $file;
 			}
 
-			if ( ! function_exists( 'tm_wizard_interface' )
-				|| ! is_callable( array( tm_wizard_interface(), 'get_skin_data' ) )
-			) {
-				return $file;
+			if ( function_exists( 'tm_wizard_interface' ) && is_callable( array( tm_wizard_interface(), 'get_skin_data' ) ) ) {
+				return cdi()->path( 'templates/wizard-after-install.php' );
 			}
 
-			return cdi()->path( 'templates/wizard-after-install.php' );
+			if ( function_exists( 'cherry_plugin_wizard_interface' ) && is_callable( array( cherry_plugin_wizard_interface(), 'get_skin_data' ) ) ) {
+				return cdi()->path( 'templates/wizard-after-install.php' );
+			}
+
+			return $file;
 		}
 
 		/**
