@@ -204,12 +204,14 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 					continue;
 				}
 
-				if ( empty( $processed_term_slug[ $parent_slug ] ) ) {
+				$term_mapping_key = $taxonomy . '-' . $parent_slug;
+
+				if ( empty( $processed_term_slug[ $term_mapping_key ] ) ) {
 					continue;
 				}
 
 				wp_update_term( $term_id, $taxonomy, array(
-					'parent' => (int) $processed_term_slug[ $parent_slug ],
+					'parent' => (int) $processed_term_slug[ $term_mapping_key ],
 				) );
 
 			}

@@ -1770,8 +1770,8 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		if ( $parent_slug ) {
 
-			if ( isset( $processed_term_slug[ $original_slug ] ) ) {
-				$data['parent'] = $processed_term_slug[ $original_slug ];
+			if ( isset( $processed_term_slug[ $parent_slug ] ) ) {
+				$data['parent'] = $processed_term_slug[ $parent_slug ];
 			} else {
 				// Prepare for remapping later
 				$meta[] = array( 'key' => '_wxr_import_parent', 'value' => $parent_slug );
@@ -1780,6 +1780,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 				// Wipe the parent for now
 				$data['parent'] = 0;
 			}
+
 		}
 
 		foreach ( $data as $key => $value ) {
@@ -1812,11 +1813,12 @@ class Cherry_WXR_Importer extends WP_Importer {
 			return false;
 		}
 
-		$term_id = $result['term_id'];
+		$term_id          = $result['term_id'];
+		$term_mapping_key = $data['taxonomy'] . '-' . $original_slug;
 
-		$processed_terms[ $mapping_key ]       = $term_id;
-		$processed_term_id[ $original_id ]     = $term_id;
-		$processed_term_slug[ $original_slug ] = $term_id;
+		$processed_terms[ $mapping_key ]          = $term_id;
+		$processed_term_id[ $original_id ]        = $term_id;
+		$processed_term_slug[ $term_mapping_key ] = $term_id;
 
 		if ( true === $requires_remapping ) {
 			$remap_terms[ $term_id ] = $data['taxonomy'];
