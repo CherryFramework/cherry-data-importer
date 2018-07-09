@@ -2022,6 +2022,13 @@ class Cherry_WXR_Importer extends WP_Importer {
 
 		$processed_users = cdi_cache()->get( 'users', 'mapping' );
 
+		if ( class_exists( 'Elementor\Compatibility' ) ) {
+			remove_filter(
+				'wxr_importer.pre_process.post_meta',
+				array( 'Elementor\Compatibility', 'on_wxr_importer_pre_process_post_meta' )
+			);
+		}
+
 		foreach ( $meta as $meta_item ) {
 			/**
 			 * Pre-process post meta data.
