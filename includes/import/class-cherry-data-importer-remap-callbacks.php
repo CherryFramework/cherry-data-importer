@@ -34,6 +34,8 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 		 */
 		public $terms = array();
 
+		public $pages = null;
+
 		/**
 		 * Store processed shortcodes data
 		 *
@@ -49,6 +51,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_options' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'postprocess_posts' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_thumbs' ) );
+			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_elementor_pages_posts' ) );
 			add_action( 'cherry_data_import_remap_posts', array( $this, 'process_home_page' ) );
 
 			// Manipulations with terms remap array
@@ -56,6 +59,132 @@ if ( ! class_exists( 'Cherry_Data_Importer_Callbacks' ) ) {
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_nav_menu_widgets' ) );
 			add_action( 'cherry_data_import_remap_terms', array( $this, 'process_home_page' ) );
+
+		}
+
+		public function elementor_pages() {
+
+			if ( null === $this->pages ) {
+				$this->pages = get_posts( array(
+					'post_type'      => array( 'page', 'jet-theme-core', 'elementor_library' ),
+					'posts_per_page' => -1,
+				) );
+			}
+
+			return $this->pages;
+
+		}
+
+		/**
+		 * Remap elementor images
+		 *
+		 * @todo   remplace images in elementor widgets with imported.
+		 * @return void
+		 */
+		public function process_elementor_pages_posts( $data ) {
+
+			$pages = $this->elementor_pages();
+
+			foreach ( $pages as $page ) {
+
+				$elementor_data = get_post_meta( $page->ID, '_elementor_data', true );
+
+				if ( empty( $elementor_data ) ) {
+					continue;
+				}
+
+				$new_data = preg_replace_callback(
+					'/\"id\":\"?(\d+)\"?,\"url\":\"(.*?)\"/',
+					function( $match ) use ( $data ) {
+
+						if ( isset( $data[ $match[1] ] ) ) {
+							return sprintf(
+								'"id":%1$s,"url":%2$s',
+								$data[ $match[1] ],
+								json_encode( wp_get_attachment_url( $data[ $match[1] ] ) )
+							);
+						} else {
+							return $match[0];
+						}
+
+					},
+					$elementor_data
+				);
+
+				$ids_keys = apply_filters( 'cherry_data_importer_elementor_post_ids_to_remap', array(
+					'panel_template_id',
+					'item_template_id',
+				) );
+
+				$ids_keys  = implode( '|', $ids_keys );
+				$ids_regex = "/\\\"({$ids_keys})\\\":\\\"(\d+)\\\"/";
+
+				$new_data = preg_replace_callback( $ids_regex, function( $match ) use ( $data ) {
+
+					if ( isset( $data[ $match[2] ] ) ) {
+						return sprintf(
+							'"%1$s":"%2$s"',
+							$match[1],
+							$data[ $match[2] ]
+						);
+					} else {
+						return $match[0];
+					}
+
+				}, $new_data );
+
+				update_post_meta( $page->ID, '_elementor_data', wp_slash( $new_data ) );
+
+			}
+
+		}
+
+		public function process_elementor_pages_terms( $data ) {
+
+			$pages    = $this->elementor_pages();
+			$ids_keys = apply_filters( 'cherry_data_importer_elementor_terms_ids_to_remap', array(
+				'category_ids',
+				'menu',
+				'nav_menu',
+			) );
+
+			$ids_keys = implode( '|', $ids_keys );
+			$regex    = '\"(' . $ids_keys . ')\":(\".*?\"|\[.*?\])';
+
+			foreach ( $pages as $page ) {
+
+				$elementor_data = get_post_meta( $page->ID, '_elementor_data', true );
+
+				if ( empty( $elementor_data ) ) {
+					continue;
+				}
+
+				$new_data = preg_replace_callback( '/' . $regex . '/', function( $match ) use ( $data ) {
+
+					$val = json_decode( $match[2], true );
+
+					if ( ! is_array( $val ) ) {
+						$new = isset( $data[ $val ] ) ? $data[ $val ] : $val;
+						$new = '"' . $new . '"';
+					} else {
+						$new = array();
+						foreach ( $val as $old_id ) {
+							$new = isset( $data[ $old_id ] ) ? $data[ $old_id ] : $old_id;
+						}
+						$new = json_encode( $new );
+					}
+
+					return sprintf(
+						'"%1$s":%2$s',
+						$match[1],
+						$new
+					);
+
+				}, $elementor_data );
+
+				update_post_meta( $page->ID, '_elementor_data', wp_slash( $new_data ) );
+
+			}
 
 		}
 

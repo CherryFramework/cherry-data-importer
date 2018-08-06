@@ -164,7 +164,12 @@ class Cherry_WXR_Importer extends WP_Importer {
 				break;
 
 			case 'wp:user_tables':
-				$summary['tables']++;
+				$node = $this->reader->expand();
+
+				if ( $node->childNodes ) {
+					$summary['tables'] = ceil( ( $node->childNodes->length - 1 ) / 2 );
+				}
+
 				break;
 
 			case 'wp:wp_author':
@@ -268,7 +273,13 @@ class Cherry_WXR_Importer extends WP_Importer {
 				break;
 
 			default:
-				// Skip this node, probably handled by something already
+
+				$current = apply_filters(
+					'cherry-data-importer/increment-import-node',
+					$current,
+					$this->reader->name
+				);
+
 				break;
 		}
 
@@ -470,7 +481,7 @@ class Cherry_WXR_Importer extends WP_Importer {
 					break;
 
 				default:
-					// Skip this node, probably handled by something already
+					do_action( 'cherry-data-importer/import-node/' . $this->reader->name, $this );
 					break;
 			}
 
