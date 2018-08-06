@@ -161,9 +161,22 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 			ini_set( 'memory_limit', -1 );
 			set_time_limit( 0 );
 
+			ob_start();
+
+			echo $this->get_options();
+			echo $this->get_widgets();
+			echo $this->get_tables();
+
+			/**
+			 * Add data to export file
+			 */
+			do_action( 'cherry-data-importer/export/custom-data' );
+
+			$custom_data = ob_get_clean();
+
 			$xml = str_replace(
 				"</wp:base_blog_url>",
-				"</wp:base_blog_url>\r\n" . $this->get_options() . $this->get_widgets() . $this->get_tables(),
+				"</wp:base_blog_url>\r\n" . $custom_data,
 				$xml
 			);
 			return $xml;
@@ -177,7 +190,7 @@ if ( ! class_exists( 'Cherry_WXR_Exporter' ) ) {
 		public function get_options() {
 
 			$options        = '';
-			$format         = "\t\t<wp:%1$s>%2$s</wp:%1$s>\r\n";
+			$format         = "\t\t<wp:%1\$s>%2\$s</wp:%1\$s>\r\n";
 			$export_options = $this->get_options_to_export();
 
 			foreach ( $export_options as $option ) {

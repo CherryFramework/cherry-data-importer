@@ -162,6 +162,11 @@ if ( ! class_exists( 'Cherry_Data_Importer' ) ) {
 			$this->set_default_settings();
 			$this->set_theme_settings();
 
+			if ( is_admin() ) {
+				require $this->path( 'includes/compat/manager.php' );
+				new Cherry_Data_Importer_Compat();
+			}
+
 			$this->load();
 			$this->load_import();
 			$this->load_export();
