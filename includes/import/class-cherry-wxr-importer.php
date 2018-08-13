@@ -1273,7 +1273,13 @@ class Cherry_WXR_Importer extends WP_Importer {
 				$sidebars_widgets['wp_inactive_widgets'] = array_merge( $inactive_widgets, $added_widgets );
 			} else {
 				$existing_widgets = $sidebars_widgets[ $use_sidebar_id ];
-				$sidebars_widgets['wp_inactive_widgets'] = array_merge( $inactive_widgets, $existing_widgets );
+
+				if ( is_array( $inactive_widgets ) && is_array( $existing_widgets ) ) {
+					$sidebars_widgets['wp_inactive_widgets'] = array_merge( $inactive_widgets, $existing_widgets );
+				} else {
+					$sidebars_widgets['wp_inactive_widgets'] = array();
+				}
+
 				$sidebars_widgets[ $use_sidebar_id ] = $added_widgets;
 			}
 
@@ -2013,6 +2019,27 @@ class Cherry_WXR_Importer extends WP_Importer {
 		cdi_cache()->update( 'comments', $remap_comments, 'requires_remapping' );
 
 		return $num_comments;
+	}
+
+	/**
+	 * Callback for `usort` to sort comments by ID
+	 *
+	 * @param array $a Comment data for the first comment
+	 * @param array $b Comment data for the second comment
+	 * @return int
+	 */
+	public function sort_comments_by_id( $a, $b ) {
+
+		if ( empty( $a['comment_id'] ) ) {
+			return 1;
+		}
+
+		if ( empty( $b['comment_id'] ) ) {
+			return -1;
+		}
+
+		return $a['comment_id'] - $b['comment_id'];
+
 	}
 
 	/**

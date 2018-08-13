@@ -123,7 +123,7 @@ if ( ! class_exists( 'Cherry_Data_Importer_Interface' ) ) {
 				) );
 			}
 
-			$password = esc_attr( $_REQUEST['password'] );
+			$password = $_REQUEST['password'];
 			$user_id  = get_current_user_id();
 			$data     = get_userdata( $user_id );
 
